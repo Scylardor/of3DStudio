@@ -1,0 +1,3 @@
+ofxAssimpModelLoader
+ofxXmlSettings
+ofxUI
