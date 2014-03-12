@@ -6,10 +6,11 @@ void testApp::setup(){
 	ofEnableSmoothing();
 	ofEnableDepthTest();
 
-    box.set(42);
-    objs.push_back(new ofSpherePrimitive());
     objs.push_back(new ofBoxPrimitive());
-//    objs.push_back(new Object<ofBoxPrimitive>());
+    objInfos.push_back(new ObjInfo(BOX));
+    lights.push_back(ofLight());
+    lights[0].setPointLight();
+    lights[0].setPosition(100, 100, 0);
     //set some sketch parameters
     //Background Color
     backgroundColor = ofColor(233, 52, 27);
@@ -22,18 +23,21 @@ void testApp::setup(){
     gui->addSlider("BG Blue", 0, 255, backgroundColor.b);
     gui->addSpacer();
     // Object controls
-    gui->addLabel("Object color", OFX_UI_FONT_MEDIUM);
+    gui->addLabel("Object Color", OFX_UI_FONT_MEDIUM);
     gui->addSpacer();
-//    gui->addLabel("CIRCLE CONTROL");
-//    gui->addSlider("RED", 0.0, 255.0, red);
-//	gui->addSlider("GREEN", 0.0, 255.0, green);
-//    gui->addSlider("BLUE", 0.0, 255.0, blue);
-//    gui->addSlider("ALPHA", 0.0, 255.0, alpha);
+    gui->addSlider("RED", 0.0, 255.0, objInfos[0]->color()[0]);
+	gui->addSlider("GREEN", 0.0, 255.0, objInfos[0]->color()[1]);
+    gui->addSlider("BLUE", 0.0, 255.0, objInfos[0]->color()[2]);
+    gui->addSlider("ALPHA", 0.0, 255.0, objInfos[0]->color()[3]);
+    gui->addLabel("Object Position", OFX_UI_FONT_MEDIUM);
+    gui->addSpacer();
+    gui->addSlider("X", -2000.0, 2000.0, objs[0]->getPosition()[0]);
+	gui->addSlider("Y", -2000.0, 2000.0, objs[0]->getPosition()[1]);
+    gui->addSlider("Z", -2000.0, 2000.0, objs[0]->getPosition()[2]);
 //    gui->addSlider("RADIUS", 0.0, 600.0, radius);
 //	gui->addSlider("RESOLUTION", 3, 60, resolution);
 //    gui->addLabelToggle("DRAW FILL", drawFill);
 
-    gui->addSpacer();
     gui->addTextArea("TEXT AREA", "HIDE & SHOW GUI BY PRESSING 'g'. MOUSE OVER A SLIDER AND PRESS UP, DOWN, LEFT, RIGHT", OFX_UI_FONT_SMALL);
     gui->autoSizeToFitWidgets();
     ofAddListener(gui->newGUIEvent,this,&testApp::guiEvent);
@@ -49,12 +53,21 @@ void testApp::update(){
 void testApp::draw(){
 	ofBackground(backgroundColor);
 	cam.begin();
+	ofEnableLighting();
+	ofSetSmoothLighting(true);
+	lights[0].enable();
 	ofPushStyle();
 	ofEnableBlendMode(OF_BLENDMODE_ALPHA);
-	ofSetColor(ofColor::blue);
-    box.draw();
+	ofSetColor(objInfos[0]->color());
+    objs[0]->draw();
 	ofPopStyle();
+    lights[0].disable();
+    ofDisableLighting();
+    ofFill();
+    ofSetColor(lights[0].getDiffuseColor());
+    lights[0].draw();
 	cam.end();
+
 }
 
 //--------------------------------------------------------------
@@ -118,17 +131,22 @@ void testApp::guiEvent(ofxUIEventArgs &e)
 	if(name == "RED")
 	{
 		ofxUISlider *slider = (ofxUISlider *) e.widget;
-//		red = slider->getScaledValue();
+		objInfos[0]->color()[0] = slider->getScaledValue();
 	}
 	else if(name == "GREEN")
 	{
 		ofxUISlider *slider = (ofxUISlider *) e.widget;
-	//	green = slider->getScaledValue();
+		objInfos[0]->color()[1] = slider->getScaledValue();
 	}
 	else if(name == "BLUE")
 	{
 		ofxUISlider *slider = (ofxUISlider *) e.widget;
-	//	blue = slider->getScaledValue();
+		objInfos[0]->color()[2] = slider->getScaledValue();
+	}
+    else if(name == "ALPHA")
+	{
+		ofxUISlider *slider = (ofxUISlider *) e.widget;
+        objInfos[0]->color()[3] = slider->getScaledValue();
 	}
 	else if(name == "BG Red")
 	{
@@ -145,11 +163,7 @@ void testApp::guiEvent(ofxUIEventArgs &e)
 		ofxUISlider *rslider = (ofxUISlider *) e.widget;
 		backgroundColor.b = rslider->getScaledValue();
 	}
-	else if(name == "ALPHA")
-	{
-		ofxUISlider *slider = (ofxUISlider *) e.widget;
-//		alpha = slider->getScaledValue();
-	}
+
 	else if(name == "RADIUS")
 	{
 		ofxUISlider *slider = (ofxUISlider *) e.widget;
@@ -162,9 +176,30 @@ void testApp::guiEvent(ofxUIEventArgs &e)
      //   ofSetCircleResolution(resolution);
 //        slider->setValue(resolution);                   //shows the int value on the slider
 	}
-    else if(name == "POSITION")
+    else if(name == "X")
 	{
-		ofxUI2DPad *pad = (ofxUI2DPad *) e.widget;
+		ofxUISlider *rslider = (ofxUISlider *) e.widget;
+		ofPoint tPos = objs[0]->getPosition();
+
+		objs[0]->setPosition(rslider->getScaledValue(), tPos[1], tPos[2]);
+	//	position.x = pad->getPercentValue().x*ofGetWidth();
+	//	position.y = pad->getPercentValue().y*ofGetHeight();
+	}
+    else if(name == "Y")
+	{
+		ofxUISlider *rslider = (ofxUISlider *) e.widget;
+        ofPoint tPos = objs[0]->getPosition();
+
+		objs[0]->setPosition(tPos[0], rslider->getScaledValue(), tPos[2]);
+	//	position.x = pad->getPercentValue().x*ofGetWidth();
+	//	position.y = pad->getPercentValue().y*ofGetHeight();
+	}
+    else if(name == "Z")
+	{
+		ofxUISlider *rslider = (ofxUISlider *) e.widget;
+        ofPoint tPos = objs[0]->getPosition();
+
+		objs[0]->setPosition(tPos[0], tPos[1], rslider->getScaledValue());
 	//	position.x = pad->getPercentValue().x*ofGetWidth();
 	//	position.y = pad->getPercentValue().y*ofGetHeight();
 	}

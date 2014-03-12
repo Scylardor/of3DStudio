@@ -4,8 +4,7 @@
 
 #include "ofxUI.h"
 
-#include "Object.h"
-
+#include "Object.hpp"
 
 class testApp : public ofBaseApp{
 public:
@@ -27,12 +26,10 @@ public:
     void guiEvent(ofxUIEventArgs &e);
 
     ofxUICanvas *gui;
-    vector<of3dPrimitive*> objs;
-    vector<Object> objInfos;
+    vector<of3dPrimitive *> objs;
+    vector<ObjInfo *> objInfos;
     vector<ofLight> lights;
     ofColor backgroundColor;
     ofEasyCam cam;
     int target;
-
-    ofBoxPrimitive box;
 };
