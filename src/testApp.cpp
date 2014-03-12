@@ -2,46 +2,16 @@
 
 //--------------------------------------------------------------
 void testApp::setup(){
-//    backgroundColor = ofColor(233, 52, 27);
-//
-////    gui = new ofxUICanvas(10, 10, OFX_UI_GLOBAL_CANVAS_WIDTH, OFX_UI_GLOBAL_CANVAS_WIDTH);        //Creates a canvas at (0,0) using the default width
-////    gui->addLabel("TEST");
-////    gui->addSpacer();
-////    gui->addLabel("BACKGROUND", OFX_UI_FONT_MEDIUM);
-////    gui->addSpacer();
-////    gui->addSlider("BGR", 0, 255, backgroundColor.r);
-////    gui->addSlider("BGG", 0, 255, backgroundColor.g);
-////    gui->addSlider("BGB", 0, 255, backgroundColor.b);
-////    gui->addSpacer();
-////    gui->addSpacer();
-////    //gui->addFPS();
-////    gui->addSlider("BACKGROUND",0.0,255.0,100.0);
-////    gui->addToggle("FULLSCREEN", false);
-////    gui->autoSizeToFitWidgets();
-////    ofAddListener(gui->newGUIEvent, this, &testApp::guiEvent);
-////    gui->loadSettings("settings.xml");
-//    gui = new ofxUISuperCanvas("VARIABLE BINDING");
-//    gui->addSpacer();
-//    gui->addLabel("BACKGROUND", OFX_UI_FONT_MEDIUM);
-//    gui->addSpacer();
-//    gui->addSlider("BGR", 0, 255, backgroundColor.r);
-//    gui->addSlider("BGG", 0, 255, backgroundColor.g);
-//    gui->addSlider("BGB", 0, 255, backgroundColor.b);
-//    gui->addSpacer();
-//    gui->addTextArea("TEXT AREA", "HIDE & SHOW GUI BY PRESSING 'g'. MOUSE OVER A SLIDER AND PRESS UP, DOWN, LEFT, RIGHT", OFX_UI_FONT_SMALL);
-//    gui->autoSizeToFitWidgets();
-//    ofAddListener(gui->newGUIEvent,this,&testApp::guiEvent);
-//    gui->loadSettings("guiSettings.xml");
-//
-//
     ofSetVerticalSync(true);
 	ofEnableSmoothing();
 	ofEnableDepthTest();
 
     box.set(42);
+    objs.push_back(new ofSpherePrimitive());
+    objs.push_back(new ofBoxPrimitive());
+//    objs.push_back(new Object<ofBoxPrimitive>());
     //set some sketch parameters
     //Background Color
-
     backgroundColor = ofColor(233, 52, 27);
 
     gui = new ofxUICanvas(20, 20, 200, 200);
@@ -50,9 +20,10 @@ void testApp::setup(){
     gui->addSlider("BG Red", 0, 255, backgroundColor.r);
     gui->addSlider("BG Green", 0, 255, backgroundColor.g);
     gui->addSlider("BG Blue", 0, 255, backgroundColor.b);
-   // gui->addSlider("THEME", 0., 44., 0.);
     gui->addSpacer();
-//    gui->addSpacer();
+    // Object controls
+    gui->addLabel("Object color", OFX_UI_FONT_MEDIUM);
+    gui->addSpacer();
 //    gui->addLabel("CIRCLE CONTROL");
 //    gui->addSlider("RED", 0.0, 255.0, red);
 //	gui->addSlider("GREEN", 0.0, 255.0, green);
@@ -66,8 +37,7 @@ void testApp::setup(){
     gui->addTextArea("TEXT AREA", "HIDE & SHOW GUI BY PRESSING 'g'. MOUSE OVER A SLIDER AND PRESS UP, DOWN, LEFT, RIGHT", OFX_UI_FONT_SMALL);
     gui->autoSizeToFitWidgets();
     ofAddListener(gui->newGUIEvent,this,&testApp::guiEvent);
-    gui->loadSettings("guiSettings.xml");
-    cout << "coucou " << box.getPosition() << endl;
+    target = 0;
 }
 
 //--------------------------------------------------------------
@@ -81,6 +51,7 @@ void testApp::draw(){
 	cam.begin();
 	ofPushStyle();
 	ofEnableBlendMode(OF_BLENDMODE_ALPHA);
+	ofSetColor(ofColor::blue);
     box.draw();
 	ofPopStyle();
 	cam.end();
