@@ -49,4 +49,6 @@ public:
     pair<ctxtFunc, ctxtFunc> contexts;
     eventFunc cur_event_listener;
     bool change;
+        ofxUITabBar *guiTabBar;
+    vector<ofxUICanvas *> guis;
 };
