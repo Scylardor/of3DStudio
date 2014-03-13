@@ -12,8 +12,8 @@ typedef enum PrimitiveType {
 
 class ObjInfo {
 public:
-    ObjInfo(PrimType p_type) :
-    m_draw(true), m_axes(false), m_faces(false), m_wire(false), m_norms(false), m_verts(false), m_color(ofColor::red), m_type(p_type)
+    ObjInfo(PrimType p_type, string p_name) :
+    m_draw(true), m_axes(false), m_faces(false), m_wire(false), m_norms(false), m_verts(false), m_color(ofColor::red), m_type(p_type), m_name(p_name)
     {}
     ~ObjInfo() {}
 
@@ -21,6 +21,7 @@ public:
     void addShader(const ofShader & p_newShdr);
     void setType(PrimType p_type);
     ofColor &color() { return m_color; }
+    string & name() { return m_name; }
 
     inline const vector<ofMaterial> &materials() const { return m_mats; }
     inline const vector<ofShader> &shaders() const { return m_shdrs; }
@@ -32,6 +33,7 @@ public:
     inline bool verticesDrawable() const { return m_axes; }
     inline bool isDrawable() const { return m_draw; }
     inline ofColor color() const { return m_color; }
+    const inline string &name() const { return m_name; }
 
 private:
     bool m_draw;
@@ -42,6 +44,7 @@ private:
     bool m_verts;
     ofColor m_color;
     PrimType m_type;
+    string m_name;
     vector<ofMaterial> m_mats;
     vector<ofShader> m_shdrs;
 };

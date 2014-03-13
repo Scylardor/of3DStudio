@@ -4,10 +4,17 @@
 
 #include "ofxUI.h"
 
-#include "Object.hpp"
+#include "ObjInfo.hpp"
 
 class testApp : public ofBaseApp{
 public:
+    typedef void (testApp::*ctxtFunc)();
+    typedef void (testApp::*eventFunc)(ofxUIEventArgs &e);
+    typedef enum Context {
+        MAIN = 0,
+        BACKGROUND
+    }   Context;
+
     void setup();
     void update();
     void draw();
@@ -23,7 +30,14 @@ public:
     void dragEvent(ofDragInfo dragInfo);
     void gotMessage(ofMessage msg);
 
+    void guiChangeListener(eventFunc ListenerFunc);
+    void guiMain();
+    void guiMainEvent(ofxUIEventArgs &e);
     void guiEvent(ofxUIEventArgs &e);
+    void guiBackground();
+    void guiBackgroundEvent(ofxUIEventArgs &e);
+    void guiObjects();
+    void guiObjectsEvent(ofxUIEventArgs &e);
 
     ofxUICanvas *gui;
     vector<of3dPrimitive *> objs;
@@ -32,4 +46,7 @@ public:
     ofColor backgroundColor;
     ofEasyCam cam;
     int target;
+    pair<ctxtFunc, ctxtFunc> contexts;
+    eventFunc cur_event_listener;
+    bool change;
 };
