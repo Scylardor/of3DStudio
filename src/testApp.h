@@ -38,6 +38,11 @@ public:
     void guiBackgroundEvent(ofxUIEventArgs &e);
     void guiObjects();
     void guiObjectsEvent(ofxUIEventArgs &e);
+    void guiLights();
+    void guiLightsEvent(ofxUIEventArgs &e);
+    void guiNewLightEvent(ofxUIEventArgs &e);
+
+    ofxUICanvas *getSecondaryGUI(const string & name);
 
     ofxUICanvas *gui;
     vector<of3dPrimitive *> objs;
@@ -49,6 +54,5 @@ public:
     pair<ctxtFunc, ctxtFunc> contexts;
     eventFunc cur_event_listener;
     bool change;
-        ofxUITabBar *guiTabBar;
     vector<ofxUICanvas *> guis;
 };

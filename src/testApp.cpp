@@ -71,7 +71,6 @@ void testApp::setup(){
 //--------------------------------------------------------------
 void testApp::update() {
     if (contexts.first != contexts.second) {
-        cout << "yap" << endl;
         (this->*contexts.second)();
         contexts.first = contexts.second;
     }
@@ -173,6 +172,20 @@ void testApp::exit()
 }
 
 
+ofxUICanvas *testApp::getSecondaryGUI(const string & name) {
+    ofxUICanvas *toFind = NULL;
+
+    for (size_t i = 0; i < guis.size(); i++)
+    {
+        if (guis[i]->getName() == name)
+        {
+            toFind = guis[i];
+            break;
+        }
+    }
+    return toFind;
+}
+
 void testApp::guiChangeListener(eventFunc newListenerFunc) {
     if (cur_event_listener != NULL) {
         ofRemoveListener(gui->newGUIEvent,this, cur_event_listener);
@@ -201,6 +214,8 @@ void testApp::guiMainEvent(ofxUIEventArgs &e) {
     }
     else if (name == "Objects") {
         contexts.second = &testApp::guiObjects;
+    } else if (name == "Lights") {
+        contexts.second = &testApp::guiLights;
     }
 }
 
@@ -328,12 +343,14 @@ void testApp::guiBackgroundEvent(ofxUIEventArgs &e) {
 }
 
 void testApp::guiObjects() {
+    target = 0; // Reset target index
     gui->clearWidgets();
     gui->addLabel("Objects", OFX_UI_FONT_MEDIUM);
     gui->addSpacer();
     cout << objInfos[target]->name() << endl;
     gui->addLabel("Current target: " + objInfos[target]->name(), OFX_UI_FONT_SMALL);
     gui->addLabelButton("Change target", false);
+    gui->addLabelButton("Create new object", false);
     gui->addSpacer();
     gui->addLabel("Draw");
     gui->addSpacer();
@@ -346,9 +363,9 @@ void testApp::guiObjects() {
     gui->addSpacer();
     gui->addLabel("Color");
     gui->addSpacer();
-    gui->addSlider("Red", 0, 255, backgroundColor.r);
-    gui->addSlider("Green", 0, 255, backgroundColor.g);
-    gui->addSlider("Blue", 0, 255, backgroundColor.b);
+    gui->addSlider("Red", 0, 255, objInfos[target]->color()[0]);
+    gui->addSlider("Green", 0, 255, objInfos[target]->color()[1]);
+    gui->addSlider("Blue", 0, 255, objInfos[target]->color()[2]);
     gui->addSpacer();
     gui->addLabel("Position");
     gui->addSpacer();
@@ -441,7 +458,6 @@ void testApp::guiObjectsEvent(ofxUIEventArgs &e) {
         ofPoint tPos = objs[target]->getPosition();
 
 		objs[target]->setPosition(tPos[0], rslider->getScaledValue(), tPos[2]);
-		cout << objs[target]->getPosition() << endl;
 	} else if (name == "Z")
 	{
 		ofxUISlider *rslider = (ofxUISlider *) e.widget;
@@ -503,3 +519,184 @@ void testApp::guiObjectsEvent(ofxUIEventArgs &e) {
 	    contexts.second = &testApp::guiMain;
 	}
 }
+
+void testApp::guiLights() {
+    gui->clearWidgets();
+    gui->addLabel("Lights");
+    gui->addSpacer();
+    string lightName;
+
+    if (lights[target].getIsPointLight()) {
+        lightName = "Pointlight";
+    } else if (lights[target].getIsDirectional()) {
+        lightName = "Directional";
+    } else if (lights[target].getIsSpotlight()) {
+        lightName = "Spotlight";
+    }
+    stringstream ss;
+
+    ss << lights[target].getLightID();
+    lightName += ss.str();
+    gui->addLabel("Current target: " + lightName, OFX_UI_FONT_SMALL);
+  //  gui->addLabelButton("Create new light", false);
+    gui->addToggle("Create new light", false);
+    gui->addSpacer();
+    gui->addLabel("Position");
+    gui->addSpacer();
+    gui->addSlider("X", -3000.0, 3000.0, lights[target].getPosition()[0]);
+	gui->addSlider("Y", -3000.0, 3000.0, lights[target].getPosition()[1]);
+    gui->addSlider("Z", -3000.0, 3000.0, lights[target].getPosition()[2]);
+    gui->addSpacer();
+    gui->addLabel("Diffuse Color");
+    gui->addSpacer();
+    gui->addSlider("Diff. Red", 0, 255, ofMap(lights[target].getDiffuseColor()[0], 0.0, 1.0, 0.0, 255.0));
+    gui->addSlider("Diff. Green", 0, 255, ofMap(lights[target].getDiffuseColor()[1], 0.0, 1.0, 0.0, 255.0));
+    gui->addSlider("Diff. Blue", 0, 255, ofMap(lights[target].getDiffuseColor()[2], 0.0, 1.0, 0.0, 255.0));
+    gui->addSpacer();
+    gui->addLabel("Specular Color");
+    gui->addSpacer();
+    gui->addSlider("Spec. Red", 0, 255, ofMap(lights[target].getSpecularColor()[0], 0.0, 1.0, 0.0, 255.0));
+    gui->addSlider("Spec. Green", 0, 255, ofMap(lights[target].getSpecularColor()[1], 0.0, 1.0, 0.0, 255.0));
+    gui->addSlider("Spec. Blue", 0, 255, ofMap(lights[target].getSpecularColor()[2], 0.0, 1.0, 0.0, 255.0));
+    gui->addSpacer();
+    gui->addLabel("Ambient Color");
+    gui->addSpacer();
+    gui->addSlider("Amb. Red", 0, 255, ofMap(lights[target].getAmbientColor()[0], 0.0, 1.0, 0.0, 255.0));
+    gui->addSlider("Amb. Green", 0, 255, ofMap(lights[target].getAmbientColor()[1], 0.0, 1.0, 0.0, 255.0));
+    gui->addSlider("Amb. Blue", 0, 255, ofMap(lights[target].getAmbientColor()[2], 0.0, 1.0, 0.0, 255.0));
+    gui->addSpacer();
+    gui->addLabelButton("Back", false);
+    gui->autoSizeToFitWidgets();
+    guiChangeListener(&testApp::guiLightsEvent);
+}
+
+void testApp::guiLightsEvent(ofxUIEventArgs &e) {
+    string name = e.widget->getName();
+
+    if (name == "Create new light") {
+        ofxUIToggle * toggle = (ofxUIToggle *) e.widget;
+        ofxUICanvas *newLightCanvas = getSecondaryGUI("newLightCanvas");
+
+        if (toggle->getValue()) {
+            if (newLightCanvas == NULL)
+            {
+                newLightCanvas = new ofxUICanvas(gui->getGlobalCanvasWidth(), 0, OFX_UI_GLOBAL_CANVAS_WIDTH, OFX_UI_GLOBAL_CANVAS_WIDTH);
+                guis.push_back(newLightCanvas);
+                ofAddListener(newLightCanvas->newGUIEvent,this, &testApp::guiLightsEvent);
+            }
+            else {
+                newLightCanvas->clearWidgets();
+                newLightCanvas->setVisible(true);
+            }
+            newLightCanvas->setName("newLightCanvas");
+            newLightCanvas->addLabel("New Light");
+            newLightCanvas->addSpacer();
+            vector<string> vnames;
+
+            vnames.push_back("Point light");
+            vnames.push_back("Directional light");
+            vnames.push_back("Spotlight");
+            ofxUIRadio *radio = newLightCanvas->addRadio("Light Type", vnames, OFX_UI_ORIENTATION_VERTICAL);
+
+            radio->activateToggle("Point light");
+            newLightCanvas->addSpacer();
+            newLightCanvas->addLabelButton("OK", false);
+            newLightCanvas->autoSizeToFitWidgets();
+        } else {
+            newLightCanvas->setVisible(false);
+        }
+    }
+    else if (name == "OK") { // OK, create a new light
+        ofxUICanvas *newLightCanvas = getSecondaryGUI("newLightCanvas");
+        ofxUIRadio *radio = (ofxUIRadio *) newLightCanvas->getWidget("Light Type");
+        ofxUIToggle *toggle = (ofxUIToggle *) gui->getWidget("Create new light");
+
+
+        //newLightCanvas->toggleVisible();
+        cout << "radio name : " << radio->getActiveName() << " toggle " << toggle << endl;
+//        OKbut->setValue(false);
+        newLightCanvas->setVisible(false);
+        toggle->setValue(false);
+    }
+    else if (name == "X") {
+        ofxUISlider *rslider = (ofxUISlider *) e.widget;
+        ofVec3f pos = lights[target].getPosition();
+
+        pos[0] = rslider->getValue();
+        lights[target].setPosition(pos);
+    }
+    else if (name == "Y") {
+        ofxUISlider *rslider = (ofxUISlider *) e.widget;
+        ofVec3f pos = lights[target].getPosition();
+
+        pos[1] = rslider->getValue();
+        lights[target].setPosition(pos);
+    }
+    else if (name == "Z") {
+        ofxUISlider *rslider = (ofxUISlider *) e.widget;
+        ofVec3f pos = lights[target].getPosition();
+
+        pos[2] = rslider->getValue();
+        lights[target].setPosition(pos);
+    }
+    else if (name == "Diff. Red") {
+        ofFloatColor liteColor = lights[target].getDiffuseColor();
+        ofxUISlider *rslider = (ofxUISlider *) e.widget;
+
+        lights[target].setDiffuseColor(ofFloatColor(rslider->getNormalizedValue(), liteColor[1], liteColor[2]));
+    }
+    else if (name == "Diff. Green") {
+        ofFloatColor liteColor = lights[target].getDiffuseColor();
+        ofxUISlider *rslider = (ofxUISlider *) e.widget;
+
+        lights[target].setDiffuseColor(ofFloatColor(liteColor[0], rslider->getNormalizedValue(), liteColor[2]));
+    }
+    else if (name == "Diff. Blue") {
+        ofFloatColor liteColor = lights[target].getDiffuseColor();
+        ofxUISlider *rslider = (ofxUISlider *) e.widget;
+
+        lights[target].setDiffuseColor(ofFloatColor(liteColor[0], liteColor[1], rslider->getNormalizedValue()));
+    }
+    else if (name == "Spec. Red") {
+        ofFloatColor liteColor = lights[target].getSpecularColor();
+        ofxUISlider *rslider = (ofxUISlider *) e.widget;
+
+        lights[target].setSpecularColor(ofFloatColor(rslider->getNormalizedValue(), liteColor[1], liteColor[2]));
+    }
+    else if (name == "Spec. Green") {
+        ofFloatColor liteColor = lights[target].getSpecularColor();
+        ofxUISlider *rslider = (ofxUISlider *) e.widget;
+
+        lights[target].setSpecularColor(ofFloatColor(liteColor[0], rslider->getNormalizedValue(), liteColor[2]));
+    }
+    else if (name == "Spec. Blue") {
+        ofFloatColor liteColor = lights[target].getSpecularColor();
+        ofxUISlider *rslider = (ofxUISlider *) e.widget;
+
+        lights[target].setSpecularColor(ofFloatColor(liteColor[0], liteColor[1], rslider->getNormalizedValue()));
+    }
+    else if (name == "Amb. Red") {
+        ofFloatColor liteColor = lights[target].getAmbientColor();
+        ofxUISlider *rslider = (ofxUISlider *) e.widget;
+
+        lights[target].setAmbientColor(ofFloatColor(rslider->getNormalizedValue(), liteColor[1], liteColor[2]));
+    }
+    else if (name == "Amb. Green") {
+        ofFloatColor liteColor = lights[target].getAmbientColor();
+        ofxUISlider *rslider = (ofxUISlider *) e.widget;
+
+        lights[target].setAmbientColor(ofFloatColor(liteColor[0], rslider->getNormalizedValue(), liteColor[2]));
+    }
+    else if (name == "Amb. Blue") {
+        ofFloatColor liteColor = lights[target].getAmbientColor();
+        ofxUISlider *rslider = (ofxUISlider *) e.widget;
+
+        lights[target].setAmbientColor(ofFloatColor(liteColor[0], liteColor[1], rslider->getNormalizedValue()));
+    } else if (name == "Back") {
+        contexts.second = &testApp::guiMain;
+    }
+
+
+}
+
+
