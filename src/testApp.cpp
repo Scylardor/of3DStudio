@@ -65,7 +65,8 @@ void testApp::setup(){
     contexts.first = NULL;
     contexts.second = &testApp::guiMain;
     cur_event_listener = NULL;
-    target = 0;
+    objTarget = 0;
+    lightTarget = 0;
 }
 
 //--------------------------------------------------------------
@@ -82,42 +83,58 @@ void testApp::draw(){
 	cam.begin();
 	ofEnableLighting();
 	ofSetSmoothLighting(true);
-	lights[0].enable();
-	ofPushStyle();
-	ofPushMatrix();
-	ofEnableBlendMode(OF_BLENDMODE_ALPHA);
-	ofSetColor(objInfos[target]->color());
-	ofScale(objInfos[target]->scale()[0], objInfos[target]->scale()[1], objInfos[target]->scale()[2]);
-	if (objInfos[target]->fill()) {
-        objs[target]->draw();
+	for (size_t i = 0; i < lights.size(); i++) {
+        lights[i].enable();
 	}
-	if (objInfos[target]->fill()) {
-        objs[target]->draw();
+	for (size_t i = 0; i < objs.size(); i++) {
+        ofPushStyle();
+        ofPushMatrix();
+        ofEnableBlendMode(OF_BLENDMODE_ALPHA);
+        ofSetColor(objInfos[i]->color());
+        ofScale(objInfos[i]->scale()[0], objInfos[i]->scale()[1], objInfos[i]->scale()[2]);
+        if (objInfos[i]->fill())
+        {
+            objs[i]->draw();
+        }
+        if (objInfos[i]->fill())
+        {
+            objs[i]->draw();
+        }
+        if (objInfos[i]->drawAxes())
+        {
+            objs[i]->drawAxes(100);
+        }
+        if (objInfos[i]->drawFaces())
+        {
+            objs[i]->drawFaces();
+        }
+        if (objInfos[i]->drawVertices())
+        {
+            objs[i]->drawVertices();
+        }
+        if (objInfos[i]->drawWireframe())
+        {
+            ofSetColor(0, 0, 0);
+            objs[i]->drawWireframe();
+        }
+        if (objInfos[i]->drawNormals())
+        {
+            ofSetColor(255, 0, 255);
+            objs[i]->drawNormals(20, true);
+        }
+        ofPopMatrix();
+        ofPopStyle();
 	}
-	if (objInfos[target]->drawAxes()) {
-        objs[target]->drawAxes(100);
+	for (size_t i = 0; i < lights.size(); i++) {
+        lights[i].disable();
 	}
-	if (objInfos[target]->drawFaces()) {
-        objs[target]->drawFaces();
-	}
-	if (objInfos[target]->drawVertices()) {
-        objs[target]->drawVertices();
-	}
-	if (objInfos[target]->drawWireframe()) {
-        ofSetColor(0, 0, 0);
-        objs[target]->drawWireframe();
-	}
-    if (objInfos[target]->drawNormals()) {
-        ofSetColor(255, 0, 255);
-        objs[target]->drawNormals(20, true);
-	}
-    ofPopMatrix();
-	ofPopStyle();
-    lights[0].disable();
     ofDisableLighting();
     ofFill();
-    ofSetColor(lights[0].getDiffuseColor());
-    lights[0].draw();
+    for (size_t i = 0; i < lights.size(); i++) {
+        ofSetColor(lights[i].getDiffuseColor());
+        lights[i].draw();
+	}
+
 	cam.end();
 }
 
@@ -171,6 +188,22 @@ void testApp::exit()
     delete gui;
 }
 
+string testApp::getLightName(ofLight &light) {
+    string lightName("");
+
+    if (light.getIsPointLight()) {
+        lightName = "Pointlight";
+    } else if (light.getIsDirectional()) {
+        lightName = "Directional";
+    } else if (light.getIsSpotlight()) {
+        lightName = "Spotlight";
+    }
+    stringstream ss("");
+
+    ss << lightTarget;
+    lightName += ss.str();
+    return lightName;
+}
 
 ofxUICanvas *testApp::getSecondaryGUI(const string & name) {
     ofxUICanvas *toFind = NULL;
@@ -343,40 +376,39 @@ void testApp::guiBackgroundEvent(ofxUIEventArgs &e) {
 }
 
 void testApp::guiObjects() {
-    target = 0; // Reset target index
+    objTarget = 0; // Reset target index
     gui->clearWidgets();
     gui->addLabel("Objects", OFX_UI_FONT_MEDIUM);
     gui->addSpacer();
-    cout << objInfos[target]->name() << endl;
-    gui->addLabel("Current target: " + objInfos[target]->name(), OFX_UI_FONT_SMALL);
+    gui->addLabel("Current target: " + objInfos[objTarget]->name(), OFX_UI_FONT_SMALL);
     gui->addLabelButton("Change target", false);
     gui->addLabelButton("Create new object", false);
     gui->addSpacer();
     gui->addLabel("Draw");
     gui->addSpacer();
-    gui->addToggle("Fill", objInfos[target]->fill());
-    gui->addToggle("Faces", objInfos[target]->drawFaces());
-    gui->addToggle("Vertices", objInfos[target]->drawVertices());
-    gui->addToggle("Wireframe", objInfos[target]->drawWireframe());
-    gui->addToggle("Normals", objInfos[target]->drawNormals());
-    gui->addToggle("Axes", objInfos[target]->drawAxes());
+    gui->addToggle("Fill", objInfos[objTarget]->fill());
+    gui->addToggle("Faces", objInfos[objTarget]->drawFaces());
+    gui->addToggle("Vertices", objInfos[objTarget]->drawVertices());
+    gui->addToggle("Wireframe", objInfos[objTarget]->drawWireframe());
+    gui->addToggle("Normals", objInfos[objTarget]->drawNormals());
+    gui->addToggle("Axes", objInfos[objTarget]->drawAxes());
     gui->addSpacer();
     gui->addLabel("Color");
     gui->addSpacer();
-    gui->addSlider("Red", 0, 255, objInfos[target]->color()[0]);
-    gui->addSlider("Green", 0, 255, objInfos[target]->color()[1]);
-    gui->addSlider("Blue", 0, 255, objInfos[target]->color()[2]);
+    gui->addSlider("Red", 0, 255, objInfos[objTarget]->color()[0]);
+    gui->addSlider("Green", 0, 255, objInfos[objTarget]->color()[1]);
+    gui->addSlider("Blue", 0, 255, objInfos[objTarget]->color()[2]);
     gui->addSpacer();
     gui->addLabel("Position");
     gui->addSpacer();
-    gui->addSlider("X", -3000.0, 3000.0, objs[target]->getPosition()[0]);
-	gui->addSlider("Y", -3000.0, 3000.0, objs[target]->getPosition()[1]);
-    gui->addSlider("Z", -3000.0, 3000.0, objs[target]->getPosition()[2]);
+    gui->addSlider("X", -3000.0, 3000.0, objs[objTarget]->getPosition()[0]);
+	gui->addSlider("Y", -3000.0, 3000.0, objs[objTarget]->getPosition()[1]);
+    gui->addSlider("Z", -3000.0, 3000.0, objs[objTarget]->getPosition()[2]);
     gui->addSpacer();
-    switch (objInfos[target]->type()) {
+    switch (objInfos[objTarget]->type()) {
     case BOX:
         {
-            ofBoxPrimitive *box = reinterpret_cast<ofBoxPrimitive*>(objs[target]);
+            ofBoxPrimitive *box = reinterpret_cast<ofBoxPrimitive*>(objs[objTarget]);
 
             gui->addLabel("Box");
             gui->addSpacer();
@@ -396,9 +428,9 @@ void testApp::guiObjects() {
         break;
     }
 //    gui->addLabel("Scaling");
-//    gui->addSlider("X Scale", 0.1, 30.0, objInfos[target]->scaleX());
-//	gui->addSlider("Y Scale", 0.1, 30.0, objInfos[target]->scaleY());
-//    gui->addSlider("Z Scale", 0.1, 30.0, objInfos[target]->scaleZ());
+//    gui->addSlider("X Scale", 0.1, 30.0, objInfos[objTarget]->scaleX());
+//	gui->addSlider("Y Scale", 0.1, 30.0, objInfos[objTarget]->scaleY());
+//    gui->addSlider("Z Scale", 0.1, 30.0, objInfos[objTarget]->scaleZ());
     gui->addSpacer();
     gui->addLabelButton("Back", false);
     gui->autoSizeToFitWidgets();
@@ -410,109 +442,109 @@ void testApp::guiObjectsEvent(ofxUIEventArgs &e) {
     string name = e.widget->getName();
 
     if (name == "Fill") {
-        objInfos[target]->toggleFill();
+        objInfos[objTarget]->toggleFill();
     }
     else if (name == "Faces")
 	{
-		objInfos[target]->toggleFill();
+		objInfos[objTarget]->toggleFill();
 	}
 	else if (name == "Vertices")
 	{
-		objInfos[target]->toggleVertices();
+		objInfos[objTarget]->toggleVertices();
 	}
 	else if (name == "Wireframe")
 	{
-		objInfos[target]->toggleWireframe();
+		objInfos[objTarget]->toggleWireframe();
 	}
 	else if (name == "Normals")
 	{
-		objInfos[target]->toggleNormals();
+		objInfos[objTarget]->toggleNormals();
 	}
 	else if (name == "Axes")
 	{
-		objInfos[target]->toggleAxes();
+		objInfos[objTarget]->toggleAxes();
 	}
 	else if (name == "Red")
 	{
 		ofxUISlider *rslider = (ofxUISlider *) e.widget;
-		objInfos[target]->color()[0] = rslider->getScaledValue();
+		objInfos[objTarget]->color()[0] = rslider->getScaledValue();
 	}
 	else if (name == "Green")
 	{
 		ofxUISlider *rslider = (ofxUISlider *) e.widget;
-		objInfos[target]->color()[1] = rslider->getScaledValue();
+		objInfos[objTarget]->color()[1] = rslider->getScaledValue();
 	}
 	else if (name == "Blue")
 	{
 		ofxUISlider *rslider = (ofxUISlider *) e.widget;
-		objInfos[target]->color()[2] = rslider->getScaledValue();
+		objInfos[objTarget]->color()[2] = rslider->getScaledValue();
 	} else if (name == "X")
 	{
 		ofxUISlider *rslider = (ofxUISlider *) e.widget;
-		ofPoint tPos = objs[target]->getPosition();
+		ofPoint tPos = objs[objTarget]->getPosition();
 
-		objs[target]->setPosition(rslider->getScaledValue(), tPos[1], tPos[2]);
+		objs[objTarget]->setPosition(rslider->getScaledValue(), tPos[1], tPos[2]);
 	} else if (name == "Y")
 	{
 		ofxUISlider *rslider = (ofxUISlider *) e.widget;
-        ofPoint tPos = objs[target]->getPosition();
+        ofPoint tPos = objs[objTarget]->getPosition();
 
-		objs[target]->setPosition(tPos[0], rslider->getScaledValue(), tPos[2]);
+		objs[objTarget]->setPosition(tPos[0], rslider->getScaledValue(), tPos[2]);
 	} else if (name == "Z")
 	{
 		ofxUISlider *rslider = (ofxUISlider *) e.widget;
-        ofPoint tPos = objs[target]->getPosition();
+        ofPoint tPos = objs[objTarget]->getPosition();
 
-		objs[target]->setPosition(tPos[0], tPos[1], rslider->getScaledValue());
+		objs[objTarget]->setPosition(tPos[0], tPos[1], rslider->getScaledValue());
 	} else if (name == "X Scale")
 	{
 		ofxUISlider *rslider = (ofxUISlider *) e.widget;
 
-        objInfos[target]->setXScale(rslider->getValue());
+        objInfos[objTarget]->setXScale(rslider->getValue());
 	} else if (name == "Y Scale")
 	{
 		ofxUISlider *rslider = (ofxUISlider *) e.widget;
 
-		objInfos[target]->setYScale(rslider->getValue());
+		objInfos[objTarget]->setYScale(rslider->getValue());
 	} else if (name == "Z Scale")
 	{
 		ofxUISlider *rslider = (ofxUISlider *) e.widget;
 
-		objInfos[target]->setZScale(rslider->getValue());
+		objInfos[objTarget]->setZScale(rslider->getValue());
 	} else if (name == "Width")
 	{
 		ofxUISlider *rslider = (ofxUISlider *) e.widget;
-		ofBoxPrimitive *box = reinterpret_cast<ofBoxPrimitive*>(objs[target]);
+		ofBoxPrimitive *box = reinterpret_cast<ofBoxPrimitive*>(objs[objTarget]);
 
 		box->setWidth(rslider->getValue());
 	} else if (name == "Height")
 	{
 		ofxUISlider *rslider = (ofxUISlider *) e.widget;
-		ofBoxPrimitive *box = reinterpret_cast<ofBoxPrimitive*>(objs[target]);
+		ofBoxPrimitive *box = reinterpret_cast<ofBoxPrimitive*>(objs[objTarget]);
 
 		box->setHeight(rslider->getValue());
 	} else if (name == "Depth")
 	{
 		ofxUISlider *rslider = (ofxUISlider *) e.widget;
-		ofBoxPrimitive *box = reinterpret_cast<ofBoxPrimitive*>(objs[target]);
+		ofBoxPrimitive *box = reinterpret_cast<ofBoxPrimitive*>(objs[objTarget]);
 
 		box->setDepth(rslider->getValue());
 	} else if (name == "Width Resolution")
 	{
 		ofxUISlider *rslider = (ofxUISlider *) e.widget;
-		ofBoxPrimitive *box = reinterpret_cast<ofBoxPrimitive*>(objs[target]);
+		ofBoxPrimitive *box = reinterpret_cast<ofBoxPrimitive*>(objs[objTarget]);
 
 		box->setResolutionWidth(rslider->getValue());
 	} else if (name == "Height Resolution")
 	{
 		ofxUISlider *rslider = (ofxUISlider *) e.widget;
-		ofBoxPrimitive *box = reinterpret_cast<ofBoxPrimitive*>(objs[target]);
+		ofBoxPrimitive *box = reinterpret_cast<ofBoxPrimitive*>(objs[objTarget]);
 
 		box->setResolutionHeight(rslider->getValue());
 	} else if (name == "Depth Resolution")
 	{
 		ofxUISlider *rslider = (ofxUISlider *) e.widget;
-		ofBoxPrimitive *box = reinterpret_cast<ofBoxPrimitive*>(objs[target]);
+		ofBoxPrimitive *box = reinterpret_cast<ofBoxPrimitive*>(objs[objTarget]);
 
 		box->setResolutionDepth(rslider->getValue());
 	} else if (name == "Back") {
@@ -524,46 +556,34 @@ void testApp::guiLights() {
     gui->clearWidgets();
     gui->addLabel("Lights");
     gui->addSpacer();
-    string lightName;
-
-    if (lights[target].getIsPointLight()) {
-        lightName = "Pointlight";
-    } else if (lights[target].getIsDirectional()) {
-        lightName = "Directional";
-    } else if (lights[target].getIsSpotlight()) {
-        lightName = "Spotlight";
-    }
-    stringstream ss;
-
-    ss << lights[target].getLightID();
-    lightName += ss.str();
+    string lightName = getLightName(lights[lightTarget]);
     gui->addLabel("Current target: " + lightName, OFX_UI_FONT_SMALL);
   //  gui->addLabelButton("Create new light", false);
     gui->addToggle("Create new light", false);
     gui->addSpacer();
     gui->addLabel("Position");
     gui->addSpacer();
-    gui->addSlider("X", -3000.0, 3000.0, lights[target].getPosition()[0]);
-	gui->addSlider("Y", -3000.0, 3000.0, lights[target].getPosition()[1]);
-    gui->addSlider("Z", -3000.0, 3000.0, lights[target].getPosition()[2]);
+    gui->addSlider("X", -3000.0, 3000.0, lights[lightTarget].getPosition()[0]);
+	gui->addSlider("Y", -3000.0, 3000.0, lights[lightTarget].getPosition()[1]);
+    gui->addSlider("Z", -3000.0, 3000.0, lights[lightTarget].getPosition()[2]);
     gui->addSpacer();
     gui->addLabel("Diffuse Color");
     gui->addSpacer();
-    gui->addSlider("Diff. Red", 0, 255, ofMap(lights[target].getDiffuseColor()[0], 0.0, 1.0, 0.0, 255.0));
-    gui->addSlider("Diff. Green", 0, 255, ofMap(lights[target].getDiffuseColor()[1], 0.0, 1.0, 0.0, 255.0));
-    gui->addSlider("Diff. Blue", 0, 255, ofMap(lights[target].getDiffuseColor()[2], 0.0, 1.0, 0.0, 255.0));
+    gui->addSlider("Diff. Red", 0, 255, ofMap(lights[lightTarget].getDiffuseColor()[0], 0.0, 1.0, 0.0, 255.0));
+    gui->addSlider("Diff. Green", 0, 255, ofMap(lights[lightTarget].getDiffuseColor()[1], 0.0, 1.0, 0.0, 255.0));
+    gui->addSlider("Diff. Blue", 0, 255, ofMap(lights[lightTarget].getDiffuseColor()[2], 0.0, 1.0, 0.0, 255.0));
     gui->addSpacer();
     gui->addLabel("Specular Color");
     gui->addSpacer();
-    gui->addSlider("Spec. Red", 0, 255, ofMap(lights[target].getSpecularColor()[0], 0.0, 1.0, 0.0, 255.0));
-    gui->addSlider("Spec. Green", 0, 255, ofMap(lights[target].getSpecularColor()[1], 0.0, 1.0, 0.0, 255.0));
-    gui->addSlider("Spec. Blue", 0, 255, ofMap(lights[target].getSpecularColor()[2], 0.0, 1.0, 0.0, 255.0));
+    gui->addSlider("Spec. Red", 0, 255, ofMap(lights[lightTarget].getSpecularColor()[0], 0.0, 1.0, 0.0, 255.0));
+    gui->addSlider("Spec. Green", 0, 255, ofMap(lights[lightTarget].getSpecularColor()[1], 0.0, 1.0, 0.0, 255.0));
+    gui->addSlider("Spec. Blue", 0, 255, ofMap(lights[lightTarget].getSpecularColor()[2], 0.0, 1.0, 0.0, 255.0));
     gui->addSpacer();
     gui->addLabel("Ambient Color");
     gui->addSpacer();
-    gui->addSlider("Amb. Red", 0, 255, ofMap(lights[target].getAmbientColor()[0], 0.0, 1.0, 0.0, 255.0));
-    gui->addSlider("Amb. Green", 0, 255, ofMap(lights[target].getAmbientColor()[1], 0.0, 1.0, 0.0, 255.0));
-    gui->addSlider("Amb. Blue", 0, 255, ofMap(lights[target].getAmbientColor()[2], 0.0, 1.0, 0.0, 255.0));
+    gui->addSlider("Amb. Red", 0, 255, ofMap(lights[lightTarget].getAmbientColor()[0], 0.0, 1.0, 0.0, 255.0));
+    gui->addSlider("Amb. Green", 0, 255, ofMap(lights[lightTarget].getAmbientColor()[1], 0.0, 1.0, 0.0, 255.0));
+    gui->addSlider("Amb. Blue", 0, 255, ofMap(lights[lightTarget].getAmbientColor()[2], 0.0, 1.0, 0.0, 255.0));
     gui->addSpacer();
     gui->addLabelButton("Back", false);
     gui->autoSizeToFitWidgets();
@@ -632,7 +652,7 @@ void testApp::guiLightsEvent(ofxUIEventArgs &e) {
             lights[i].setPosition(positions[i]);
         }
         // Target the new light.
-        target = lights.size()-1;
+        lightTarget = lights.size()-1;
         // Hide the 'new light' canvas and untick the "create new light" toggle button.
         newLightCanvas->setVisible(false);
         toggle->setValue(false);
@@ -647,83 +667,88 @@ void testApp::guiLightsEvent(ofxUIEventArgs &e) {
     }
     else if (name == "X") {
         ofxUISlider *rslider = (ofxUISlider *) e.widget;
-        ofVec3f pos = lights[target].getPosition();
+        ofVec3f pos = lights[lightTarget].getPosition();
 
         pos[0] = rslider->getValue();
-        lights[target].setPosition(pos);
+        lights[lightTarget].setPosition(pos);
     }
     else if (name == "Y") {
         ofxUISlider *rslider = (ofxUISlider *) e.widget;
-        ofVec3f pos = lights[target].getPosition();
+        ofVec3f pos = lights[lightTarget].getPosition();
 
         pos[1] = rslider->getValue();
-        lights[target].setPosition(pos);
+        lights[lightTarget].setPosition(pos);
     }
     else if (name == "Z") {
         ofxUISlider *rslider = (ofxUISlider *) e.widget;
-        ofVec3f pos = lights[target].getPosition();
+        ofVec3f pos = lights[lightTarget].getPosition();
 
         pos[2] = rslider->getValue();
-        lights[target].setPosition(pos);
+        lights[lightTarget].setPosition(pos);
     }
     else if (name == "Diff. Red") {
-        ofFloatColor liteColor = lights[target].getDiffuseColor();
+        ofFloatColor liteColor = lights[lightTarget].getDiffuseColor();
         ofxUISlider *rslider = (ofxUISlider *) e.widget;
 
-        lights[target].setDiffuseColor(ofFloatColor(rslider->getNormalizedValue(), liteColor[1], liteColor[2]));
+        lights[lightTarget].setDiffuseColor(ofFloatColor(rslider->getNormalizedValue(), liteColor[1], liteColor[2]));
     }
     else if (name == "Diff. Green") {
-        ofFloatColor liteColor = lights[target].getDiffuseColor();
+        ofFloatColor liteColor = lights[lightTarget].getDiffuseColor();
         ofxUISlider *rslider = (ofxUISlider *) e.widget;
 
-        lights[target].setDiffuseColor(ofFloatColor(liteColor[0], rslider->getNormalizedValue(), liteColor[2]));
+        lights[lightTarget].setDiffuseColor(ofFloatColor(liteColor[0], rslider->getNormalizedValue(), liteColor[2]));
     }
     else if (name == "Diff. Blue") {
-        ofFloatColor liteColor = lights[target].getDiffuseColor();
+        ofFloatColor liteColor = lights[lightTarget].getDiffuseColor();
         ofxUISlider *rslider = (ofxUISlider *) e.widget;
 
-        lights[target].setDiffuseColor(ofFloatColor(liteColor[0], liteColor[1], rslider->getNormalizedValue()));
+        lights[lightTarget].setDiffuseColor(ofFloatColor(liteColor[0], liteColor[1], rslider->getNormalizedValue()));
     }
     else if (name == "Spec. Red") {
-        ofFloatColor liteColor = lights[target].getSpecularColor();
+        ofFloatColor liteColor = lights[lightTarget].getSpecularColor();
         ofxUISlider *rslider = (ofxUISlider *) e.widget;
 
-        lights[target].setSpecularColor(ofFloatColor(rslider->getNormalizedValue(), liteColor[1], liteColor[2]));
+        lights[lightTarget].setSpecularColor(ofFloatColor(rslider->getNormalizedValue(), liteColor[1], liteColor[2]));
     }
     else if (name == "Spec. Green") {
-        ofFloatColor liteColor = lights[target].getSpecularColor();
+        ofFloatColor liteColor = lights[lightTarget].getSpecularColor();
         ofxUISlider *rslider = (ofxUISlider *) e.widget;
 
-        lights[target].setSpecularColor(ofFloatColor(liteColor[0], rslider->getNormalizedValue(), liteColor[2]));
+        lights[lightTarget].setSpecularColor(ofFloatColor(liteColor[0], rslider->getNormalizedValue(), liteColor[2]));
     }
     else if (name == "Spec. Blue") {
-        ofFloatColor liteColor = lights[target].getSpecularColor();
+        ofFloatColor liteColor = lights[lightTarget].getSpecularColor();
         ofxUISlider *rslider = (ofxUISlider *) e.widget;
 
-        lights[target].setSpecularColor(ofFloatColor(liteColor[0], liteColor[1], rslider->getNormalizedValue()));
+        lights[lightTarget].setSpecularColor(ofFloatColor(liteColor[0], liteColor[1], rslider->getNormalizedValue()));
     }
     else if (name == "Amb. Red") {
-        ofFloatColor liteColor = lights[target].getAmbientColor();
+        ofFloatColor liteColor = lights[lightTarget].getAmbientColor();
         ofxUISlider *rslider = (ofxUISlider *) e.widget;
 
-        lights[target].setAmbientColor(ofFloatColor(rslider->getNormalizedValue(), liteColor[1], liteColor[2]));
+        lights[lightTarget].setAmbientColor(ofFloatColor(rslider->getNormalizedValue(), liteColor[1], liteColor[2]));
     }
     else if (name == "Amb. Green") {
-        ofFloatColor liteColor = lights[target].getAmbientColor();
+        ofFloatColor liteColor = lights[lightTarget].getAmbientColor();
         ofxUISlider *rslider = (ofxUISlider *) e.widget;
 
-        lights[target].setAmbientColor(ofFloatColor(liteColor[0], rslider->getNormalizedValue(), liteColor[2]));
+        lights[lightTarget].setAmbientColor(ofFloatColor(liteColor[0], rslider->getNormalizedValue(), liteColor[2]));
     }
     else if (name == "Amb. Blue") {
-        ofFloatColor liteColor = lights[target].getAmbientColor();
+        ofFloatColor liteColor = lights[lightTarget].getAmbientColor();
         ofxUISlider *rslider = (ofxUISlider *) e.widget;
 
-        lights[target].setAmbientColor(ofFloatColor(liteColor[0], liteColor[1], rslider->getNormalizedValue()));
+        lights[lightTarget].setAmbientColor(ofFloatColor(liteColor[0], liteColor[1], rslider->getNormalizedValue()));
     } else if (name == "Back") {
+        ofxUICanvas *newLightCanvas = getSecondaryGUI("newLightCanvas");
         contexts.second = &testApp::guiMain;
+        if (newLightCanvas) {
+            newLightCanvas->setVisible(false);
+            ofRemoveListener(newLightCanvas->newGUIEvent,this, &testApp::guiLightsEvent);
+            delete newLightCanvas;
+            guis.pop_back();
+        }
     }
-
-
 }
 
 

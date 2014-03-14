@@ -43,6 +43,7 @@ public:
     void guiNewLightEvent(ofxUIEventArgs &e);
 
     ofxUICanvas *getSecondaryGUI(const string & name);
+    string getLightName(ofLight &light);
 
     ofxUICanvas *gui;
     vector<of3dPrimitive *> objs;
@@ -50,7 +51,8 @@ public:
     vector<ofLight> lights;
     ofColor backgroundColor;
     ofEasyCam cam;
-    int target;
+    int objTarget;
+    int lightTarget;
     pair<ctxtFunc, ctxtFunc> contexts;
     eventFunc cur_event_listener;
     bool change;
