@@ -23,7 +23,7 @@ void testApp::setup(){
 	ofEnableDepthTest();
 
     objs.push_back(new ofBoxPrimitive());
-    objInfos.push_back(new ObjInfo(BOX, "Box1"));
+    objInfos.push_back(new ObjInfo(BOX, "Box0"));
     lights.push_back(ofLight());
     lights[0].setPointLight();
     lights[0].setPosition(100, 100, 0);
@@ -92,23 +92,16 @@ void testApp::draw(){
         ofEnableBlendMode(OF_BLENDMODE_ALPHA);
         ofSetColor(objInfos[i]->color());
         ofScale(objInfos[i]->scale()[0], objInfos[i]->scale()[1], objInfos[i]->scale()[2]);
-        if (objInfos[i]->fill())
-        {
-            objs[i]->draw();
-        }
-        if (objInfos[i]->fill())
-        {
-            objs[i]->draw();
-        }
-        if (objInfos[i]->drawAxes())
-        {
-            objs[i]->drawAxes(100);
-        }
-        if (objInfos[i]->drawFaces())
+        if (objInfos[i]->drawFaces()) // draws the shape "normally"
         {
             objs[i]->drawFaces();
         }
-        if (objInfos[i]->drawVertices())
+        if (objInfos[i]->drawAxes()) // draws axes of the shape
+        {
+            objs[i]->drawAxes(100);
+        }
+
+        if (objInfos[i]->drawVertices()) // draw vertices of the shape
         {
             objs[i]->drawVertices();
         }
@@ -339,6 +332,7 @@ void testApp::guiEvent(ofxUIEventArgs &e)
     }
 }
 
+
 void testApp::guiBackground() {
     gui->clearWidgets();
     gui->addLabel("Background", OFX_UI_FONT_MEDIUM);
@@ -375,18 +369,18 @@ void testApp::guiBackgroundEvent(ofxUIEventArgs &e) {
 	}
 }
 
+
 void testApp::guiObjects() {
-    objTarget = 0; // Reset target index
+
     gui->clearWidgets();
     gui->addLabel("Objects", OFX_UI_FONT_MEDIUM);
     gui->addSpacer();
     gui->addLabel("Current target: " + objInfos[objTarget]->name(), OFX_UI_FONT_SMALL);
     gui->addLabelButton("Change target", false);
-    gui->addLabelButton("Create new object", false);
+    gui->addLabelToggle("Create new object", false);
     gui->addSpacer();
     gui->addLabel("Draw");
     gui->addSpacer();
-    gui->addToggle("Fill", objInfos[objTarget]->fill());
     gui->addToggle("Faces", objInfos[objTarget]->drawFaces());
     gui->addToggle("Vertices", objInfos[objTarget]->drawVertices());
     gui->addToggle("Wireframe", objInfos[objTarget]->drawWireframe());
@@ -406,6 +400,9 @@ void testApp::guiObjects() {
     gui->addSlider("Z", -3000.0, 3000.0, objs[objTarget]->getPosition()[2]);
     gui->addSpacer();
     switch (objInfos[objTarget]->type()) {
+    case PLANE:
+        gui->addLabel("Plane");
+        break;
     case BOX:
         {
             ofBoxPrimitive *box = reinterpret_cast<ofBoxPrimitive*>(objs[objTarget]);
@@ -423,6 +420,15 @@ void testApp::guiObjects() {
     case SPHERE:
         gui->addLabel("Sphere");
         break;
+    case CONE:
+        gui->addLabel("Cone");
+        break;
+    case CYLINDER:
+        gui->addLabel("Cylinder");
+        break;
+    case ICOSPHERE:
+        gui->addLabel("IcoSphere");
+        break;
     default:
         gui->addLabel("Primitive");
         break;
@@ -437,16 +443,124 @@ void testApp::guiObjects() {
     guiChangeListener(&testApp::guiObjectsEvent);
 }
 
-
 void testApp::guiObjectsEvent(ofxUIEventArgs &e) {
     string name = e.widget->getName();
 
-    if (name == "Fill") {
-        objInfos[objTarget]->toggleFill();
+    if (name == "Create new object") {
+        ofxUILabelToggle * lblBut = (ofxUILabelToggle *)e.widget;
+        ofxUICanvas *newObjCanvas = getSecondaryGUI("newObjCanvas"); // get the GUI, or NULL if it's the first time
+
+        if (lblBut->getValue()) { // If the button is ON : show the GUI !
+            if (newObjCanvas == NULL) // first time
+            {
+                newObjCanvas = new ofxUICanvas(gui->getGlobalCanvasWidth(), 0, OFX_UI_GLOBAL_CANVAS_WIDTH, OFX_UI_GLOBAL_CANVAS_WIDTH);
+                guis.push_back(newObjCanvas);
+                ofAddListener(newObjCanvas->newGUIEvent,this, &testApp::guiObjectsEvent); // this function listens to the events of the secondary GUI too
+            }
+            else { // If the new object GUI was just hidden, show it and reset widgets
+                newObjCanvas->clearWidgets();
+                newObjCanvas->setVisible(true);
+            }
+            // Initialize the "New object" secondary GUI
+            newObjCanvas->setName("newObjCanvas");
+            newObjCanvas->addLabel("New Object");
+            newObjCanvas->addSpacer();
+            vector<string> vnames;
+
+            vnames.push_back("Plane");
+            vnames.push_back("Box");
+            vnames.push_back("Sphere");
+            vnames.push_back("Cone");
+            vnames.push_back("Cylinder");
+            vnames.push_back("IcoSphere");
+            ofxUIRadio *radio = newObjCanvas->addRadio("Object Type", vnames, OFX_UI_ORIENTATION_VERTICAL);
+
+            radio->activateToggle("Plane");
+            newObjCanvas->addSpacer();
+            newObjCanvas->addLabelButton("OK", false);
+            newObjCanvas->addLabelButton("Cancel", false);
+            newObjCanvas->autoSizeToFitWidgets();
+        } else { // If the button is OFF : hide the "New object" GUI
+            newObjCanvas->setVisible(false);
+        }
     }
+    else if (name == "Change target") {
+        cout << "old target: " << objTarget << endl;
+        objTarget = (objTarget + 1) % objs.size();
+        cout << "size: " << objs.size() << " total: " << objTarget << endl;
+        guiObjects();
+    }
+    else if (name == "OK")
+	{
+	    ofxUICanvas *newObjCanvas = getSecondaryGUI("newObjCanvas");
+        ofxUIRadio *radio = (ofxUIRadio *) newObjCanvas->getWidget("Object Type");
+        ofxUILabelToggle * lblBut = (ofxUILabelToggle *)e.widget;
+        of3dPrimitive *newObj = NULL;
+        PrimitiveType type;
+        string typeName;
+
+        if (radio) {
+            typeName = radio->getActiveName();
+        } else {
+            cerr << "guiObjectsEvent::ERROR: Object Type radio button is NULL" << endl;
+        }
+        // Set the object type according to the user's choice.
+        if (typeName == "Plane") {
+            newObj = new ofPlanePrimitive();
+            type = PLANE;
+        } else if (typeName == "Box") {
+            newObj = new ofBoxPrimitive();
+            type = BOX;
+        } else if (typeName == "Sphere") {
+            newObj = new ofSpherePrimitive();
+            type = SPHERE;
+        } else if (typeName == "Cone") {
+            newObj = new ofConePrimitive();
+            type = CONE;
+        } else if (typeName == "Cylinder") {
+            newObj = new ofCylinderPrimitive();
+            type = CYLINDER;
+        } else if (typeName == "IcoSphere") {
+            newObj = new ofIcoSpherePrimitive();
+            type = ICOSPHERE;
+        }
+        // Getting all the positions
+//        vector<ofVec3f> positions;
+//        for (int i = 0; i < lights.size(); i++) {
+//            positions.push_back(lights[i].getPosition());
+//        }
+        // Adding the new light in the vector
+        if (newObj) {
+            stringstream ss("");
+
+            objs.push_back(newObj);
+            ss << objs.size();
+            objInfos.push_back(new ObjInfo(type, radio->getActiveName() + ss.str()));
+        }
+//        lights.push_back(newLight);
+//        // Restoring the old positions. (Adding a new light resets all positions to (0,0,0) )
+//        for (int i = 0; i < positions.size(); i++) {
+//            lights[i].setPosition(positions[i]);
+//        }
+        // Set the new light as the new target
+        objTarget = objs.size()-1;
+        cout << objTarget << endl;
+        // Hide the 'new light' canvas
+        newObjCanvas->setVisible(false);
+        // Refresh the main canvas.
+        guiObjects();
+	}
+    else if (name == "Cancel")
+	{
+        ofxUICanvas *newObjCanvas = getSecondaryGUI("newObjCanvas");
+        ofxUILabelToggle *toggle = (ofxUILabelToggle *) gui->getWidget("Create new object");
+
+        newObjCanvas->setVisible(false);
+        toggle->setValue(false);
+	}
     else if (name == "Faces")
 	{
-		objInfos[objTarget]->toggleFill();
+		objInfos[objTarget]->toggleFaces();
 	}
 	else if (name == "Vertices")
 	{
@@ -551,6 +665,7 @@ void testApp::guiObjectsEvent(ofxUIEventArgs &e) {
 	    contexts.second = &testApp::guiMain;
 	}
 }
+
 
 void testApp::guiLights() {
     gui->clearWidgets();

@@ -13,7 +13,7 @@ typedef enum PrimitiveType {
 class ObjInfo {
 public:
     ObjInfo(PrimType p_type, string p_name) :
-    m_draw(true), m_axes(false), m_faces(false), m_wire(false), m_norms(false), m_verts(false), m_color(ofColor::red), m_type(p_type), m_name(p_name),
+    m_faces(true), m_wire(false), m_verts(false), m_norms(false), m_axes(false), m_color(ofColor::white), m_type(p_type), m_name(p_name),
     m_scale(ofVec3f(1.,1.,1.))
     {}
     ~ObjInfo() {}
@@ -21,7 +21,6 @@ public:
     void addMaterial(const ofMaterial & p_newMat);
     void addShader(const ofShader & p_newShdr);
     void setType(PrimType p_type);
-    void toggleFill() { m_draw = !m_draw; }
     void toggleFaces() { m_faces = !m_faces; }
     void toggleVertices() { m_verts = !m_verts; }
     void toggleWireframe() { m_wire = !m_wire; }
@@ -35,7 +34,6 @@ public:
     inline const vector<ofMaterial> &materials() const { return m_mats; }
     inline const vector<ofShader> &shaders() const { return m_shdrs; }
     inline PrimType type() const { return m_type; }
-    inline bool fill() const { return m_draw; }
     inline bool drawFaces() const { return m_faces; }
     inline bool drawVertices() const { return m_verts; }
     inline bool drawWireframe() const { return m_wire; }
@@ -51,12 +49,11 @@ public:
     inline float scaleZ() const { return m_scale[2]; }
 
 private:
-    bool m_draw;
-    bool m_axes;
     bool m_faces;
     bool m_wire;
-    bool m_norms;
     bool m_verts;
+    bool m_norms;
+    bool m_axes;
     ofColor m_color;
     PrimType m_type;
     string m_name;
