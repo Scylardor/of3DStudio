@@ -557,8 +557,9 @@ void testApp::guiLights() {
     gui->addLabel("Lights");
     gui->addSpacer();
     string lightName = getLightName(lights[lightTarget]);
+
     gui->addLabel("Current target: " + lightName, OFX_UI_FONT_SMALL);
-  //  gui->addLabelButton("Create new light", false);
+    gui->addLabelButton("Change target", false);
     gui->addToggle("Create new light", false);
     gui->addSpacer();
     gui->addLabel("Position");
@@ -593,21 +594,26 @@ void testApp::guiLights() {
 void testApp::guiLightsEvent(ofxUIEventArgs &e) {
     string name = e.widget->getName();
 
-    if (name == "Create new light") {
-        ofxUIToggle * toggle = (ofxUIToggle *) e.widget;
-        ofxUICanvas *newLightCanvas = getSecondaryGUI("newLightCanvas");
+    if (name == "Change target") {
+        lightTarget = (lightTarget + 1) % lights.size();
+        guiLights();
+    }
+    if (name == "Create new light") { // The button to open the "New Light" secondary GUI has been clicked
+        ofxUIToggle * toggle = (ofxUIToggle *) e.widget; // get the button
+        ofxUICanvas *newLightCanvas = getSecondaryGUI("newLightCanvas"); // get the GUI, or NULL if it's the first time
 
-        if (toggle->getValue()) {
-            if (newLightCanvas == NULL)
+        if (toggle->getValue()) { // If the button is ON : show the GUI !
+            if (newLightCanvas == NULL) // first time
             {
                 newLightCanvas = new ofxUICanvas(gui->getGlobalCanvasWidth(), 0, OFX_UI_GLOBAL_CANVAS_WIDTH, OFX_UI_GLOBAL_CANVAS_WIDTH);
                 guis.push_back(newLightCanvas);
-                ofAddListener(newLightCanvas->newGUIEvent,this, &testApp::guiLightsEvent);
+                ofAddListener(newLightCanvas->newGUIEvent,this, &testApp::guiLightsEvent); // this function listens to the events of the secondary GUI too
             }
-            else {
+            else { // If the new light GUI was just hidden, show it and reset widgets
                 newLightCanvas->clearWidgets();
                 newLightCanvas->setVisible(true);
             }
+            // Initialize the "New Light" secondary GUI
             newLightCanvas->setName("newLightCanvas");
             newLightCanvas->addLabel("New Light");
             newLightCanvas->addSpacer();
@@ -623,11 +629,11 @@ void testApp::guiLightsEvent(ofxUIEventArgs &e) {
             newLightCanvas->addLabelButton("OK", false);
             newLightCanvas->addLabelButton("Cancel", false);
             newLightCanvas->autoSizeToFitWidgets();
-        } else {
+        } else { // If the button is OFF : hide the "New Light" GUI
             newLightCanvas->setVisible(false);
         }
     }
-    else if (name == "OK") { // OK, create a new light
+    else if (name == "OK") { // OK, let's create a new light !
         ofxUICanvas *newLightCanvas = getSecondaryGUI("newLightCanvas");
         ofxUIRadio *radio = (ofxUIRadio *) newLightCanvas->getWidget("Light Type");
         ofxUIToggle *toggle = (ofxUIToggle *) gui->getWidget("Create new light");
@@ -651,15 +657,15 @@ void testApp::guiLightsEvent(ofxUIEventArgs &e) {
         for (int i = 0; i < positions.size(); i++) {
             lights[i].setPosition(positions[i]);
         }
-        // Target the new light.
+        // Set the new light as the new target
         lightTarget = lights.size()-1;
-        // Hide the 'new light' canvas and untick the "create new light" toggle button.
+        // Hide the 'new light' canvas
         newLightCanvas->setVisible(false);
-        toggle->setValue(false);
+        // Refresh the main lights canvas.
+        guiLights();
     }
-    else if (name == "Cancel") { // don't create a new light after all, just hide this canvas
+    else if (name == "Cancel") { // Wait, don't create a new light after all !
         ofxUICanvas *newLightCanvas = getSecondaryGUI("newLightCanvas");
-        ofxUIRadio *radio = (ofxUIRadio *) newLightCanvas->getWidget("Light Type");
         ofxUIToggle *toggle = (ofxUIToggle *) gui->getWidget("Create new light");
 
         newLightCanvas->setVisible(false);
