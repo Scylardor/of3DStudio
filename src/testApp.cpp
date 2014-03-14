@@ -601,6 +601,7 @@ void testApp::guiLightsEvent(ofxUIEventArgs &e) {
             radio->activateToggle("Point light");
             newLightCanvas->addSpacer();
             newLightCanvas->addLabelButton("OK", false);
+            newLightCanvas->addLabelButton("Cancel", false);
             newLightCanvas->autoSizeToFitWidgets();
         } else {
             newLightCanvas->setVisible(false);
@@ -610,11 +611,37 @@ void testApp::guiLightsEvent(ofxUIEventArgs &e) {
         ofxUICanvas *newLightCanvas = getSecondaryGUI("newLightCanvas");
         ofxUIRadio *radio = (ofxUIRadio *) newLightCanvas->getWidget("Light Type");
         ofxUIToggle *toggle = (ofxUIToggle *) gui->getWidget("Create new light");
+        ofLight newLight;
+        // Set the light type according to the user's choice.
+        if (radio->getActiveName() == "Point light") {
+            newLight.setPointLight();
+        } else if (radio->getActiveName() == "Directional light") {
+            newLight.setDirectional();
+        } else if (radio->getActiveName() == "Spotlight") {
+            newLight.setSpotlight();
+        }
+        // Getting all the positions
+        vector<ofVec3f> positions;
+        for (int i = 0; i < lights.size(); i++) {
+            positions.push_back(lights[i].getPosition());
+        }
+        // Adding the new light in the vector
+        lights.push_back(newLight);
+        // Restoring the old positions. (Adding a new light resets all positions to (0,0,0) )
+        for (int i = 0; i < positions.size(); i++) {
+            lights[i].setPosition(positions[i]);
+        }
+        // Target the new light.
+        target = lights.size()-1;
+        // Hide the 'new light' canvas and untick the "create new light" toggle button.
+        newLightCanvas->setVisible(false);
+        toggle->setValue(false);
+    }
+    else if (name == "Cancel") { // don't create a new light after all, just hide this canvas
+        ofxUICanvas *newLightCanvas = getSecondaryGUI("newLightCanvas");
+        ofxUIRadio *radio = (ofxUIRadio *) newLightCanvas->getWidget("Light Type");
+        ofxUIToggle *toggle = (ofxUIToggle *) gui->getWidget("Create new light");
 
-
-        //newLightCanvas->toggleVisible();
-        cout << "radio name : " << radio->getActiveName() << " toggle " << toggle << endl;
-//        OKbut->setValue(false);
         newLightCanvas->setVisible(false);
         toggle->setValue(false);
     }
