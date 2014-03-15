@@ -447,14 +447,24 @@ void testApp::guiObjects() {
 
                 gui->addLabel("Sphere");
                 gui->addSpacer();
-                gui->addSlider("Radius", 1.0, 1000.0, sphere->getRadius());
+                gui->addSlider("Radius", 1.0, 3000.0, sphere->getRadius());
                 gui->addSlider("Resolution", 1.0, 100.0, sphere->getResolution());
                 break;
         }
 
     case CONE:
-        gui->addLabel("Cone");
-        break;
+        {
+                ofConePrimitive *cone = reinterpret_cast<ofConePrimitive*>(objs[objTarget]);
+
+                gui->addLabel("Cone");
+                gui->addSpacer();
+                gui->addSlider("Radius", 1.0, 3000.0, cone->getRadius());
+                gui->addSlider("Height", 1.0, 3000.0, cone->getHeight());
+                gui->addSlider("Radius Resolution", 1.0, 100.0, cone->getResolutionRadius());
+                gui->addSlider("Height Resolution", 1.0, 100.0, cone->getResolutionHeight());
+                gui->addSlider("Cap Resolution", 1.0, 100.0, cone->getResolutionCap());
+                break;
+        }
     case CYLINDER:
         gui->addLabel("Cylinder");
         break;
@@ -466,7 +476,7 @@ void testApp::guiObjects() {
                 gui->addSpacer();
                 gui->addSlider("Radius", 1.0, 1000.0, sphere->getRadius());
                 // Here a very little window for resolution because icosphere is very consuming to render at high resolution.
-                // Be safe out there. Don't crash your system by asking a resolution 100 Icosphere.
+                // Be safe out there. Don't blow up your system by asking a resolution 100 Icosphere.
                 gui->addSlider("Resolution", 1.0, 5.0, sphere->getResolution());
                 break;
         }
@@ -660,7 +670,7 @@ void testApp::guiObjectsEvent(ofxUIEventArgs &e) {
             plane->setWidth(rslider->getValue());
         }
 	}
-	else if (name == "Height") // This possibility is shared by both the Box and the Plane
+	else if (name == "Height") // This possibility is shared by both the Box, the Cone and the Plane
 	{
 		ofxUISlider *rslider = (ofxUISlider *) e.widget;
 
@@ -668,10 +678,14 @@ void testApp::guiObjectsEvent(ofxUIEventArgs &e) {
             ofBoxPrimitive *box = reinterpret_cast<ofBoxPrimitive*>(objs[objTarget]);
 
             box->setHeight(rslider->getValue());
-        } else { // if it's a plane
+        } else if (objInfos[objTarget]->type() == PLANE) { // if it's a plane
             ofPlanePrimitive *plane = reinterpret_cast<ofPlanePrimitive*>(objs[objTarget]);
 
             plane->setHeight(rslider->getValue());
+        } else { // then it's a cone
+            ofConePrimitive *cone = reinterpret_cast<ofConePrimitive*>(objs[objTarget]);
+
+            cone->setHeight(rslider->getValue());
         }
 	} else if (name == "Depth")
 	{
@@ -685,12 +699,20 @@ void testApp::guiObjectsEvent(ofxUIEventArgs &e) {
 		ofBoxPrimitive *box = reinterpret_cast<ofBoxPrimitive*>(objs[objTarget]);
 
 		box->setResolutionWidth(rslider->getValue());
-	} else if (name == "Height Resolution")
+	} else if (name == "Height Resolution") // This is shared by both the Box and the Cone
 	{
 		ofxUISlider *rslider = (ofxUISlider *) e.widget;
-		ofBoxPrimitive *box = reinterpret_cast<ofBoxPrimitive*>(objs[objTarget]);
 
-		box->setResolutionHeight(rslider->getValue());
+		if (objInfos[objTarget]->type() == BOX) {
+            ofBoxPrimitive *box = reinterpret_cast<ofBoxPrimitive*>(objs[objTarget]);
+
+            box->setResolutionHeight(rslider->getValue());
+		} else { // if it's a cone
+            ofConePrimitive *cone = reinterpret_cast<ofConePrimitive*>(objs[objTarget]);
+
+            cone->setResolutionHeight(rslider->getValue());
+		}
+
 	} else if (name == "Depth Resolution")
 	{
 		ofxUISlider *rslider = (ofxUISlider *) e.widget;
@@ -704,7 +726,7 @@ void testApp::guiObjectsEvent(ofxUIEventArgs &e) {
 
     // SPHERE options
     //--------------
-    else if (name == "Radius") // This possibility is shared by both the Sphere and the IcoSphere
+    else if (name == "Radius") // This possibility is shared by both the Sphere, the Cone, and the IcoSphere
 	{
 	    ofxUISlider *rslider = (ofxUISlider *) e.widget;
 
@@ -712,10 +734,14 @@ void testApp::guiObjectsEvent(ofxUIEventArgs &e) {
             ofSpherePrimitive *sphere = reinterpret_cast<ofSpherePrimitive*>(objs[objTarget]);
 
             sphere->setRadius(rslider->getValue());
-        } else { // if it's an icosphere
+        } else if (objInfos[objTarget]->type() == ICOSPHERE) { // if it's an icosphere
             ofIcoSpherePrimitive *sphere = reinterpret_cast<ofIcoSpherePrimitive*>(objs[objTarget]);
 
             sphere->setRadius(rslider->getValue());
+        } else { // then it's a cone !
+            ofConePrimitive *cone = reinterpret_cast<ofConePrimitive*>(objs[objTarget]);
+
+            cone->setRadius(rslider->getValue());
         }
 	}
     else if (name == "Resolution")
@@ -732,6 +758,19 @@ void testApp::guiObjectsEvent(ofxUIEventArgs &e) {
         }
 	}
 
+    // CONE options
+    //-------------
+    else if (name == "Radius Resolution") {
+            ofxUISlider *rslider = (ofxUISlider *) e.widget;
+            ofConePrimitive *cone = reinterpret_cast<ofConePrimitive*>(objs[objTarget]);
+
+            cone->setResolutionRadius(rslider->getValue());
+    } else if (name == "Cap Resolution") {
+            ofxUISlider *rslider = (ofxUISlider *) e.widget;
+            ofConePrimitive *cone = reinterpret_cast<ofConePrimitive*>(objs[objTarget]);
+
+            cone->setResolutionCap(rslider->getValue());
+    }
 
 
 	// Create New Object GUI events
