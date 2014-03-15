@@ -375,9 +375,15 @@ void testApp::guiObjects() {
     gui->clearWidgets();
     gui->addLabel("Objects", OFX_UI_FONT_MEDIUM);
     gui->addSpacer();
-    gui->addLabel("Current target: " + objInfos[objTarget]->name(), OFX_UI_FONT_SMALL);
-    gui->addLabelButton("Change target", false);
+    if (objTarget >= 0) {
+        gui->addLabel("Current target: " + objInfos[objTarget]->name(), OFX_UI_FONT_SMALL);
+        gui->addLabelButton("Change target", false);
+    } else {
+        gui->addLabel("Current target: None", OFX_UI_FONT_SMALL);
+    }
     gui->addLabelToggle("Create new object", false);
+    if (objTarget >= 0) {
+        gui->addLabelToggle("Remove this object", false);
     gui->addSpacer();
     gui->addLabel("Draw");
     gui->addSpacer();
@@ -437,6 +443,7 @@ void testApp::guiObjects() {
 //    gui->addSlider("X Scale", 0.1, 30.0, objInfos[objTarget]->scaleX());
 //	gui->addSlider("Y Scale", 0.1, 30.0, objInfos[objTarget]->scaleY());
 //    gui->addSlider("Z Scale", 0.1, 30.0, objInfos[objTarget]->scaleZ());
+    }
     gui->addSpacer();
     gui->addLabelButton("Back", false);
     gui->autoSizeToFitWidgets();
@@ -485,79 +492,37 @@ void testApp::guiObjectsEvent(ofxUIEventArgs &e) {
         }
     }
     else if (name == "Change target") {
-        cout << "old target: " << objTarget << endl;
         objTarget = (objTarget + 1) % objs.size();
-        cout << "size: " << objs.size() << " total: " << objTarget << endl;
         guiObjects();
     }
-    else if (name == "OK")
-	{
-	    ofxUICanvas *newObjCanvas = getSecondaryGUI("newObjCanvas");
-        ofxUIRadio *radio = (ofxUIRadio *) newObjCanvas->getWidget("Object Type");
+    else if (name == "Remove this object") {
         ofxUILabelToggle * lblBut = (ofxUILabelToggle *)e.widget;
-        of3dPrimitive *newObj = NULL;
-        PrimitiveType type;
-        string typeName;
+        ofxUICanvas *rmObjCanvas = getSecondaryGUI("rmObjCanvas"); // get the GUI, or NULL if it's the first time
 
-        if (radio) {
-            typeName = radio->getActiveName();
-        } else {
-            cerr << "guiObjectsEvent::ERROR: Object Type radio button is NULL" << endl;
+        if (lblBut->getValue()) { // If the button is ON : show the GUI !
+            if (rmObjCanvas == NULL) // first time
+            {
+                rmObjCanvas = new ofxUICanvas(gui->getGlobalCanvasWidth(), 0, OFX_UI_GLOBAL_CANVAS_WIDTH, OFX_UI_GLOBAL_CANVAS_WIDTH);
+                guis.push_back(rmObjCanvas);
+                ofAddListener(rmObjCanvas->newGUIEvent,this, &testApp::guiObjectsEvent); // this function listens to the events of the secondary GUI too
+            }
+            else { // If the GUI was just hidden, show it and reset widgets
+                rmObjCanvas->clearWidgets();
+                rmObjCanvas->setVisible(true);
+            }
+            // Initialize the secondary GUI
+            rmObjCanvas->setName("rmObjCanvas");
+            rmObjCanvas->addLabel("Warning");
+            rmObjCanvas->addSpacer();
+            rmObjCanvas->addLabel("Are you sure you want to remove this object ?", OFX_UI_FONT_SMALL);
+            rmObjCanvas->addSpacer();
+            rmObjCanvas->addLabelButton("Yes", false);
+            rmObjCanvas->addLabelButton("No", false);
+            rmObjCanvas->autoSizeToFitWidgets();
+        } else { // If the button is OFF : hide the GUI
+            rmObjCanvas->setVisible(false);
         }
-        // Set the object type according to the user's choice.
-        if (typeName == "Plane") {
-            newObj = new ofPlanePrimitive();
-            type = PLANE;
-        } else if (typeName == "Box") {
-            newObj = new ofBoxPrimitive();
-            type = BOX;
-        } else if (typeName == "Sphere") {
-            newObj = new ofSpherePrimitive();
-            type = SPHERE;
-        } else if (typeName == "Cone") {
-            newObj = new ofConePrimitive();
-            type = CONE;
-        } else if (typeName == "Cylinder") {
-            newObj = new ofCylinderPrimitive();
-            type = CYLINDER;
-        } else if (typeName == "IcoSphere") {
-            newObj = new ofIcoSpherePrimitive();
-            type = ICOSPHERE;
-        }
-        // Getting all the positions
-//        vector<ofVec3f> positions;
-//        for (int i = 0; i < lights.size(); i++) {
-//            positions.push_back(lights[i].getPosition());
-//        }
-        // Adding the new light in the vector
-        if (newObj) {
-            stringstream ss("");
-
-            objs.push_back(newObj);
-            ss << objs.size();
-            objInfos.push_back(new ObjInfo(type, radio->getActiveName() + ss.str()));
-        }
-//        lights.push_back(newLight);
-//        // Restoring the old positions. (Adding a new light resets all positions to (0,0,0) )
-//        for (int i = 0; i < positions.size(); i++) {
-//            lights[i].setPosition(positions[i]);
-//        }
-        // Set the new light as the new target
-        objTarget = objs.size()-1;
-        cout << objTarget << endl;
-        // Hide the 'new light' canvas
-        newObjCanvas->setVisible(false);
-        // Refresh the main canvas.
-        guiObjects();
-	}
-    else if (name == "Cancel")
-	{
-        ofxUICanvas *newObjCanvas = getSecondaryGUI("newObjCanvas");
-        ofxUILabelToggle *toggle = (ofxUILabelToggle *) gui->getWidget("Create new object");
-
-        newObjCanvas->setVisible(false);
-        toggle->setValue(false);
-	}
+    }
     else if (name == "Faces")
 	{
 		objInfos[objTarget]->toggleFaces();
@@ -663,6 +628,89 @@ void testApp::guiObjectsEvent(ofxUIEventArgs &e) {
 		box->setResolutionDepth(rslider->getValue());
 	} else if (name == "Back") {
 	    contexts.second = &testApp::guiMain;
+	}
+
+	// Create New Object GUI events
+	//-----------------------------
+    else if (name == "OK")
+	{
+	    ofxUICanvas *newObjCanvas = getSecondaryGUI("newObjCanvas");
+        ofxUIRadio *radio = (ofxUIRadio *) newObjCanvas->getWidget("Object Type");
+        ofxUILabelToggle * lblBut = (ofxUILabelToggle *)e.widget;
+        of3dPrimitive *newObj = NULL;
+        PrimitiveType type;
+        string typeName;
+
+        if (radio) {
+            typeName = radio->getActiveName();
+        } else {
+            cerr << "guiObjectsEvent::ERROR: Object Type radio button is NULL" << endl;
+        }
+        // Set the object type according to the user's choice.
+        if (typeName == "Plane") {
+            newObj = new ofPlanePrimitive();
+            type = PLANE;
+        } else if (typeName == "Box") {
+            newObj = new ofBoxPrimitive();
+            type = BOX;
+        } else if (typeName == "Sphere") {
+            newObj = new ofSpherePrimitive();
+            type = SPHERE;
+        } else if (typeName == "Cone") {
+            newObj = new ofConePrimitive();
+            type = CONE;
+        } else if (typeName == "Cylinder") {
+            newObj = new ofCylinderPrimitive();
+            type = CYLINDER;
+        } else if (typeName == "IcoSphere") {
+            newObj = new ofIcoSpherePrimitive();
+            type = ICOSPHERE;
+        }
+        // Adding the new light in the vector
+        if (newObj) {
+            stringstream ss("");
+
+            objs.push_back(newObj);
+            ss << objs.size();
+            objInfos.push_back(new ObjInfo(type, radio->getActiveName() + ss.str()));
+        }
+        // Set the new light as the new target
+        objTarget = objs.size()-1;
+        // Hide the 'new light' canvas
+        newObjCanvas->setVisible(false);
+        // Refresh the main canvas.
+        guiObjects();
+	}
+    else if (name == "Cancel")
+	{
+        ofxUICanvas *newObjCanvas = getSecondaryGUI("newObjCanvas");
+        ofxUILabelToggle *toggle = (ofxUILabelToggle *) gui->getWidget("Create new object");
+
+        newObjCanvas->setVisible(false);
+        toggle->setValue(false);
+	}
+
+	// Remove Object GUI events
+	//-----------------------------
+	else if (name == "Yes") {
+        ofxUICanvas *rmObjCanvas = getSecondaryGUI("rmObjCanvas");
+
+        objs.erase(objs.begin()+objTarget);
+        objInfos.erase(objInfos.begin()+objTarget);
+        if (objs.size() == 0) {
+            objTarget = -1;
+        } else {
+            objTarget = (objTarget + 1) % objs.size();
+        }
+        rmObjCanvas->setVisible(false);
+        guiObjects(); // refresh GUI
+	}
+	else if (name == "No") {
+        ofxUICanvas *rmObjCanvas = getSecondaryGUI("rmObjCanvas");
+        ofxUILabelToggle *toggle = (ofxUILabelToggle *) gui->getWidget("Remove this object");
+
+        rmObjCanvas->setVisible(false);
+        toggle->setValue(false);
 	}
 }
 
