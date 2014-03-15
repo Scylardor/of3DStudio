@@ -416,8 +416,17 @@ void testApp::guiObjects() {
     gui->addSpacer();
     switch (objInfos[objTarget]->type()) {
     case PLANE:
-        gui->addLabel("Plane");
-        break;
+        {
+                ofPlanePrimitive *plane = reinterpret_cast<ofPlanePrimitive*>(objs[objTarget]);
+
+                gui->addLabel("Plane");
+                gui->addSpacer();
+                gui->addSlider("Width", 0.1, 3000.0, plane->getWidth());
+                gui->addSlider("Height", 0.1, 3000.0, plane->getHeight());
+                gui->addSlider("Columns", 1., 100., plane->getNumColumns());
+                gui->addSlider("Rows", 1., 100., plane->getNumRows());
+                break;
+        }
     case BOX:
         {
             ofBoxPrimitive *box = reinterpret_cast<ofBoxPrimitive*>(objs[objTarget]);
@@ -433,8 +442,16 @@ void testApp::guiObjects() {
             break;
         }
     case SPHERE:
-        gui->addLabel("Sphere");
-        break;
+        {
+                ofSpherePrimitive *sphere = reinterpret_cast<ofSpherePrimitive*>(objs[objTarget]);
+
+                gui->addLabel("Sphere");
+                gui->addSpacer();
+                gui->addSlider("Radius", 1.0, 1000.0, sphere->getRadius());
+                gui->addSlider("Resolution", 1.0, 100.0, sphere->getResolution());
+                break;
+        }
+
     case CONE:
         gui->addLabel("Cone");
         break;
@@ -442,8 +459,17 @@ void testApp::guiObjects() {
         gui->addLabel("Cylinder");
         break;
     case ICOSPHERE:
-        gui->addLabel("IcoSphere");
-        break;
+        {
+                ofIcoSpherePrimitive *sphere = reinterpret_cast<ofIcoSpherePrimitive*>(objs[objTarget]);
+
+                gui->addLabel("IcoSphere");
+                gui->addSpacer();
+                gui->addSlider("Radius", 1.0, 1000.0, sphere->getRadius());
+                // Here a very little window for resolution because icosphere is very consuming to render at high resolution.
+                // Be safe out there. Don't crash your system by asking a resolution 100 Icosphere.
+                gui->addSlider("Resolution", 1.0, 5.0, sphere->getResolution());
+                break;
+        }
     default:
         gui->addLabel("Primitive");
         break;
@@ -599,18 +625,54 @@ void testApp::guiObjectsEvent(ofxUIEventArgs &e) {
 		ofxUISlider *rslider = (ofxUISlider *) e.widget;
 
 		objInfos[objTarget]->setZScale(rslider->getValue());
-	} else if (name == "Width")
+	}
+
+    // PLANE options
+    //--------------
+    else if (name == "Columns")
+	{
+	    ofxUISlider *rslider = (ofxUISlider *) e.widget;
+	    ofPlanePrimitive *plane = reinterpret_cast<ofPlanePrimitive*>(objs[objTarget]);
+
+	    plane->setColumns(rslider->getValue());
+	}
+    else if (name == "Rows")
+	{
+	    ofxUISlider *rslider = (ofxUISlider *) e.widget;
+        ofPlanePrimitive *plane = reinterpret_cast<ofPlanePrimitive*>(objs[objTarget]);
+
+        plane->setRows(rslider->getValue());
+	}
+
+	// BOX options
+	//------------
+	else if (name == "Width") // This possibility is shared by both the Box and the Plane
 	{
 		ofxUISlider *rslider = (ofxUISlider *) e.widget;
-		ofBoxPrimitive *box = reinterpret_cast<ofBoxPrimitive*>(objs[objTarget]);
 
-		box->setWidth(rslider->getValue());
-	} else if (name == "Height")
+        if (objInfos[objTarget]->type() == BOX) { // if it's a box
+            ofBoxPrimitive *box = reinterpret_cast<ofBoxPrimitive*>(objs[objTarget]);
+
+            box->setWidth(rslider->getValue());
+        } else { // if it's a plane
+            ofPlanePrimitive *plane = reinterpret_cast<ofPlanePrimitive*>(objs[objTarget]);
+
+            plane->setWidth(rslider->getValue());
+        }
+	}
+	else if (name == "Height") // This possibility is shared by both the Box and the Plane
 	{
 		ofxUISlider *rslider = (ofxUISlider *) e.widget;
-		ofBoxPrimitive *box = reinterpret_cast<ofBoxPrimitive*>(objs[objTarget]);
 
-		box->setHeight(rslider->getValue());
+        if (objInfos[objTarget]->type() == BOX) { // if it's a box
+            ofBoxPrimitive *box = reinterpret_cast<ofBoxPrimitive*>(objs[objTarget]);
+
+            box->setHeight(rslider->getValue());
+        } else { // if it's a plane
+            ofPlanePrimitive *plane = reinterpret_cast<ofPlanePrimitive*>(objs[objTarget]);
+
+            plane->setHeight(rslider->getValue());
+        }
 	} else if (name == "Depth")
 	{
 		ofxUISlider *rslider = (ofxUISlider *) e.widget;
@@ -639,6 +701,38 @@ void testApp::guiObjectsEvent(ofxUIEventArgs &e) {
 	    destroySecondaryGUIs();
 	    contexts.second = &testApp::guiMain;
 	}
+
+    // SPHERE options
+    //--------------
+    else if (name == "Radius") // This possibility is shared by both the Sphere and the IcoSphere
+	{
+	    ofxUISlider *rslider = (ofxUISlider *) e.widget;
+
+        if (objInfos[objTarget]->type() == SPHERE) { // if it's a sphere
+            ofSpherePrimitive *sphere = reinterpret_cast<ofSpherePrimitive*>(objs[objTarget]);
+
+            sphere->setRadius(rslider->getValue());
+        } else { // if it's an icosphere
+            ofIcoSpherePrimitive *sphere = reinterpret_cast<ofIcoSpherePrimitive*>(objs[objTarget]);
+
+            sphere->setRadius(rslider->getValue());
+        }
+	}
+    else if (name == "Resolution")
+	{
+	    ofxUISlider *rslider = (ofxUISlider *) e.widget;
+        if (objInfos[objTarget]->type() == SPHERE) { // if it's a sphere
+            ofSpherePrimitive *sphere = reinterpret_cast<ofSpherePrimitive*>(objs[objTarget]);
+
+            sphere->setResolution(rslider->getValue());
+        } else { // if it's an icosphere
+            ofIcoSpherePrimitive *sphere = reinterpret_cast<ofIcoSpherePrimitive*>(objs[objTarget]);
+
+            sphere->setResolution(rslider->getValue());
+        }
+	}
+
+
 
 	// Create New Object GUI events
 	//-----------------------------
@@ -816,6 +910,7 @@ void testApp::guiLightsEvent(ofxUIEventArgs &e) {
             newLight.setPointLight();
         } else if (radio->getActiveName() == "Directional light") {
             newLight.setDirectional();
+            newLight.setOrientation( ofVec3f(0, 90, 0) );
         } else if (radio->getActiveName() == "Spotlight") {
             newLight.setSpotlight();
         }
