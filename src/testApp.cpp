@@ -220,6 +220,15 @@ void testApp::guiChangeListener(eventFunc newListenerFunc) {
     cur_event_listener = newListenerFunc;
 }
 
+void testApp::destroySecondaryGUIs() {
+    for (int i = 0; i < guis.size(); i++) {
+        guis[i]->setVisible(false);
+        ofRemoveListener(guis[i]->newGUIEvent,this, cur_event_listener);
+        delete guis[i];
+    }
+    guis.clear();
+}
+
 void testApp::guiMain() {
     gui->clearWidgets();
     gui->addLabel("Main Menu", OFX_UI_FONT_MEDIUM);
@@ -627,6 +636,7 @@ void testApp::guiObjectsEvent(ofxUIEventArgs &e) {
 
 		box->setResolutionDepth(rslider->getValue());
 	} else if (name == "Back") {
+	    destroySecondaryGUIs();
 	    contexts.second = &testApp::guiMain;
 	}
 
@@ -909,14 +919,8 @@ void testApp::guiLightsEvent(ofxUIEventArgs &e) {
 
         lights[lightTarget].setAmbientColor(ofFloatColor(liteColor[0], liteColor[1], rslider->getNormalizedValue()));
     } else if (name == "Back") {
-        ofxUICanvas *newLightCanvas = getSecondaryGUI("newLightCanvas");
+        destroySecondaryGUIs();
         contexts.second = &testApp::guiMain;
-        if (newLightCanvas) {
-            newLightCanvas->setVisible(false);
-            ofRemoveListener(newLightCanvas->newGUIEvent,this, &testApp::guiLightsEvent);
-            delete newLightCanvas;
-            guis.pop_back();
-        }
     }
 }
 

@@ -31,6 +31,7 @@ public:
     void gotMessage(ofMessage msg);
 
     void guiChangeListener(eventFunc ListenerFunc);
+    void destroySecondaryGUIs();
     void guiMain();
     void guiMainEvent(ofxUIEventArgs &e);
     void guiEvent(ofxUIEventArgs &e);
