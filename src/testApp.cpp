@@ -569,6 +569,27 @@ void testApp::guiObjectsEvent(ofxUIEventArgs &e) {
 
 		objInfos[objTarget]->setZScale(rslider->getValue());
 	}
+	else if (name == "Materials") {
+        ofxUILabelToggle * lblBut = (ofxUILabelToggle *)e.widget;
+        ofxUICanvas *canvas = getSecondaryGUI("MatCanvas"); // get the GUI, or NULL if it's the first time
+
+        if (lblBut->getValue()) { // If the button is ON : show the GUI !
+            if (canvas == NULL) // first time
+            {
+                canvas = new ofxUICanvas(gui->getGlobalCanvasWidth(), 0, OFX_UI_GLOBAL_CANVAS_WIDTH, OFX_UI_GLOBAL_CANVAS_WIDTH);
+                canvas->setName("MatCanvas");
+                guis.push_back(canvas);
+                ofAddListener(canvas->newGUIEvent,this, &testApp::guiMaterialsEvent); // this function listens to the events of the secondary GUI too
+            }
+            else { // If the new object GUI was just hidden, show it and reset widgets
+                canvas->setVisible(true);
+            }
+            guiMaterials();
+        } else {
+            canvas->setVisible(false);
+        }
+
+	}
 	else if (name == "Other Properties") {
         ofxUILabelToggle * lblBut = (ofxUILabelToggle *)e.widget;
         ofxUICanvas *ObjCanvas = getSecondaryGUI("ObjCanvas"); // get the GUI, or NULL if it's the first time
@@ -921,6 +942,92 @@ void testApp::guiObjectsEvent(ofxUIEventArgs &e) {
         toggle->setValue(false);
 	}
 }
+
+void testApp::guiMaterials() {
+    ofxUICanvas *canvas = getSecondaryGUI("MatCanvas"); // get the GUI, or NULL if it's the first time
+
+    canvas->clearWidgets();
+    canvas->addLabel("Materials");
+    canvas->addSpacer();
+    vector<ofMaterial> &mats = objInfos[objTarget]->materials();
+
+    if (mats.size() > 0)
+    {
+        stringstream ss("");
+
+        ss << matTarget;
+        cout << "size: " << mats.size() << " target : " << matTarget << endl;
+        canvas->addLabel("Current target: Material" + ss.str(), OFX_UI_FONT_SMALL);
+        canvas->addLabelToggle("Change target", false);
+        canvas->addLabelToggle("Remove this material", false);
+    }
+    else
+    {
+        canvas->addLabel("Current target: None", OFX_UI_FONT_SMALL);
+    }
+    canvas->addLabelToggle("Add new material", false);
+    canvas->autoSizeToFitWidgets();
+}
+
+void testApp::guiMaterialsEvent(ofxUIEventArgs &e) {
+    string name = e.widget->getName();
+
+    if (name == "Add new material") {
+        ofxUILabelToggle * lblBut = (ofxUILabelToggle *)e.widget;
+        ofMaterial newMat;
+
+        objInfos[objTarget]->addMaterial(newMat);
+        matTarget = objInfos[objTarget]->materials().size()-1;
+        contexts.first = NULL;
+        contexts.second = &testApp::guiMaterials;
+    } else if (name == "Change target") {
+        matTarget = (matTarget+1) % objInfos[objTarget]->materials().size();
+        guiMaterials();
+    } else if (name == "Remove this material") {
+        ofxUILabelToggle * lblBut = (ofxUILabelToggle *)e.widget;
+        ofxUICanvas *rmMatCanvas = getSecondaryGUI("rmMatCanvas"); // get the GUI, or NULL if it's the first time
+
+        if (lblBut->getValue()) { // If the button is ON : show the GUI !
+            if (rmMatCanvas == NULL) // first time
+            {
+                rmMatCanvas = new ofxUICanvas(gui->getGlobalCanvasWidth(), 0, OFX_UI_GLOBAL_CANVAS_WIDTH, OFX_UI_GLOBAL_CANVAS_WIDTH);
+                rmMatCanvas->setName("rmMatCanvas");
+                guis.push_back(rmMatCanvas);
+                ofAddListener(rmMatCanvas->newGUIEvent,this, &testApp::guiMaterialsEvent); // this function listens to the events of the secondary GUI too
+            }
+            else { // If the GUI was just hidden, show it and reset widgets
+                rmMatCanvas->clearWidgets();
+                rmMatCanvas->setVisible(true);
+            }
+            // Initialize the secondary GUI
+
+            rmMatCanvas->addLabel("Warning");
+            rmMatCanvas->addSpacer();
+            rmMatCanvas->addLabel("Are you sure you want to remove this material ?", OFX_UI_FONT_SMALL);
+            rmMatCanvas->addSpacer();
+            rmMatCanvas->addLabelButton("Yes", false);
+            rmMatCanvas->addLabelButton("No", false);
+            rmMatCanvas->autoSizeToFitWidgets();
+        } else { // If the button is OFF : hide the GUI
+            rmMatCanvas->setVisible(false);
+        }
+    }
+    else if (name == "Yes") {
+        ofxUICanvas *rmMatCanvas = getSecondaryGUI("rmMatCanvas");
+
+        objInfos[objTarget]->removeMaterial(matTarget);
+        matTarget = 0;
+        rmMatCanvas->setVisible(false);
+        guiMaterials();
+    }
+    else if (name == "No") {
+        ofxUICanvas *rmMatCanvas = getSecondaryGUI("rmMatCanvas");
+
+        rmMatCanvas->setVisible(false);
+    }
+
+}
+
 
 
 void testApp::guiLights() {

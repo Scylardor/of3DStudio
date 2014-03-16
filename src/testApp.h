@@ -34,11 +34,20 @@ public:
     void destroySecondaryGUIs();
     void guiMain();
     void guiMainEvent(ofxUIEventArgs &e);
+
+
     void guiEvent(ofxUIEventArgs &e);
+
+
     void guiBackground();
     void guiBackgroundEvent(ofxUIEventArgs &e);
+
+
     void guiObjects();
     void guiObjectsEvent(ofxUIEventArgs &e);
+    void guiMaterials();
+    void guiMaterialsEvent(ofxUIEventArgs &e);
+
     void guiLights();
     void guiLightsEvent(ofxUIEventArgs &e);
     void guiNewLightEvent(ofxUIEventArgs &e);
@@ -54,6 +63,7 @@ public:
     ofEasyCam cam;
     int objTarget;
     int lightTarget;
+    int matTarget;
     pair<ctxtFunc, ctxtFunc> contexts;
     eventFunc cur_event_listener;
     bool change;

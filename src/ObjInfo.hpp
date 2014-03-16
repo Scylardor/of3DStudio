@@ -18,7 +18,12 @@ public:
     {}
     ~ObjInfo() {}
 
-    void addMaterial(const ofMaterial & p_newMat);
+    void addMaterial(const ofMaterial & p_newMat) {
+        m_mats.push_back(p_newMat);
+    }
+    void removeMaterial(int eraseTarget) {
+        m_mats.erase(m_mats.begin()+eraseTarget);
+    }
     void addShader(const ofShader & p_newShdr);
     void setType(PrimType p_type);
     void toggleFaces() { m_faces = !m_faces; }
@@ -32,6 +37,7 @@ public:
     void setZScale(float scaleZ) { m_scale[2] = scaleZ; }
 
     inline const vector<ofMaterial> &materials() const { return m_mats; }
+    inline vector<ofMaterial> &materials()  { return m_mats; }
     inline const vector<ofShader> &shaders() const { return m_shdrs; }
     inline PrimType type() const { return m_type; }
     inline bool drawFaces() const { return m_faces; }
