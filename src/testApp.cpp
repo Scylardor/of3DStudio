@@ -83,18 +83,17 @@ void testApp::draw(){
 	cam.begin();
 	ofEnableLighting();
 	ofSetSmoothLighting(true);
-	for (size_t i = 0; i < lights.size(); i++) {
-        lights[i].enable();
-	}
 	for (size_t i = 0; i < objs.size(); i++) {
+        objInfos[i]->material().begin();
+        for (size_t j = 0; j < lights.size(); j++) {
+            lights[j].enable();
+        }
         ofPushStyle();
         ofPushMatrix();
         ofEnableBlendMode(OF_BLENDMODE_ALPHA);
         ofSetColor(objInfos[i]->color());
       //  ofScale(objInfos[i]->scale()[0], objInfos[i]->scale()[1], objInfos[i]->scale()[2]);
-        for (size_t j = 0; j < objInfos[objTarget]->materials().size(); j++) {
-            objInfos[objTarget]->materials()[j].begin();
-        }
+
         if (objInfos[i]->drawFaces()) // draws the shape "normally"
         {
             objs[i]->drawFaces();
@@ -118,15 +117,14 @@ void testApp::draw(){
             ofSetColor(255, 0, 255);
             objs[i]->drawNormals(20, true);
         }
-//        for (size_t j = 0; j < objInfos[objTarget]->materials().size(); j++) {
-//            objInfos[objTarget]->materials()[j].end();
-//        }
         ofPopMatrix();
         ofPopStyle();
+        objInfos[i]->material().end();
+        for (size_t j = 0; j < lights.size(); j++) {
+            lights[j].disable();
+        }
 	}
-	for (size_t i = 0; i < lights.size(); i++) {
-        lights[i].disable();
-	}
+
     ofDisableLighting();
     ofFill();
     for (size_t i = 0; i < lights.size(); i++) {
@@ -442,6 +440,10 @@ void testApp::guiObjectsEvent(ofxUIEventArgs &e) {
         ofxUICanvas *newObjCanvas = getSecondaryGUI("newObjCanvas"); // get the GUI, or NULL if it's the first time
 
         if (lblBut->getValue()) { // If the button is ON : show the GUI !
+            // Close the materials GUI if necessary
+            if (getSecondaryGUI("MatCanvas") && getSecondaryGUI("MatCanvas")->isVisible()) {
+                    getSecondaryGUI("MatCanvas")->setVisible(false);
+            }
             if (newObjCanvas == NULL) // first time
             {
                 newObjCanvas = new ofxUICanvas(gui->getGlobalCanvasWidth(), 0, OFX_UI_GLOBAL_CANVAS_WIDTH, OFX_UI_GLOBAL_CANVAS_WIDTH);
@@ -955,28 +957,11 @@ void testApp::guiObjectsEvent(ofxUIEventArgs &e) {
 
 void testApp::guiMaterials() {
     ofxUICanvas *canvas = getSecondaryGUI("MatCanvas"); // get the GUI, or NULL if it's the first time
-
     canvas->clearWidgets();
-    canvas->addLabel("Materials");
+    canvas->addLabel("Material");
     canvas->addSpacer();
-    vector<ofMaterial> &mats = objInfos[objTarget]->materials();
-
-    if (mats.size() > 0)
-    {
-        stringstream ss("");
-
-        ss << matTarget;
-        canvas->addLabel("Current target: Material" + ss.str(), OFX_UI_FONT_SMALL);
-        canvas->addLabelToggle("Change target", false);
-        canvas->addLabelToggle("Remove this material", false);
-    }
-    else
-    {
-        canvas->addLabel("Current target: None", OFX_UI_FONT_SMALL);
-    }
-    canvas->addLabelToggle("Add new material", false);
-    if (mats.size() > 0) {
-        ofMaterial &mat = objInfos[objTarget]->materials()[matTarget];
+    canvas->addLabelToggle("Reset material", false);
+    ofMaterial &mat = objInfos[objTarget]->material();
 
         canvas->addLabel("Diffuse Color");
         canvas->addSpacer();
@@ -1001,124 +986,74 @@ void testApp::guiMaterials() {
         canvas->addSlider("Amb. Blue", 0, 255, ofMap(mat.getAmbientColor()[2], 0.0, 1.0, 0.0, 255.0));
         canvas->addSpacer();
         canvas->addSlider("Shininess", 0, 255, mat.getShininess());
-    }
     canvas->autoSizeToFitWidgets();
 }
 
 void testApp::guiMaterialsEvent(ofxUIEventArgs &e) {
     string name = e.widget->getName();
 
-    if (name == "Add new material") {
-        ofxUILabelToggle * lblBut = (ofxUILabelToggle *)e.widget;
-        ofMaterial newMat;
-
-        objInfos[objTarget]->addMaterial(newMat);
-        matTarget = objInfos[objTarget]->materials().size()-1;
-        contexts.first = NULL;
-        contexts.second = &testApp::guiMaterials;
-    } else if (name == "Change target") {
-        matTarget = (matTarget+1) % objInfos[objTarget]->materials().size();
+    if (name == "Reset material") {
+        objInfos[objTarget]->resetMaterial();
         guiMaterials();
-    } else if (name == "Remove this material") {
-        ofxUILabelToggle * lblBut = (ofxUILabelToggle *)e.widget;
-        ofxUICanvas *rmMatCanvas = getSecondaryGUI("rmMatCanvas"); // get the GUI, or NULL if it's the first time
-
-        if (lblBut->getValue()) { // If the button is ON : show the GUI !
-            if (rmMatCanvas == NULL) // first time
-            {
-                rmMatCanvas = new ofxUICanvas(gui->getGlobalCanvasWidth(), 0, OFX_UI_GLOBAL_CANVAS_WIDTH, OFX_UI_GLOBAL_CANVAS_WIDTH);
-                rmMatCanvas->setName("rmMatCanvas");
-                guis.push_back(rmMatCanvas);
-                ofAddListener(rmMatCanvas->newGUIEvent,this, &testApp::guiMaterialsEvent); // this function listens to the events of the secondary GUI too
-            }
-            else { // If the GUI was just hidden, show it and reset widgets
-                rmMatCanvas->clearWidgets();
-                rmMatCanvas->setVisible(true);
-            }
-            // Initialize the secondary GUI
-
-            rmMatCanvas->addLabel("Warning");
-            rmMatCanvas->addSpacer();
-            rmMatCanvas->addLabel("Are you sure you want to remove this material ?", OFX_UI_FONT_SMALL);
-            rmMatCanvas->addSpacer();
-            rmMatCanvas->addLabelButton("Yes", false);
-            rmMatCanvas->addLabelButton("No", false);
-            rmMatCanvas->autoSizeToFitWidgets();
-        } else { // If the button is OFF : hide the GUI
-            rmMatCanvas->setVisible(false);
-        }
-    }
-    else if (name == "Yes") {
-        ofxUICanvas *rmMatCanvas = getSecondaryGUI("rmMatCanvas");
-
-        objInfos[objTarget]->removeMaterial(matTarget);
-        matTarget = 0;
-        rmMatCanvas->setVisible(false);
-        guiMaterials();
-    }
-    else if (name == "No") {
-        ofxUICanvas *rmMatCanvas = getSecondaryGUI("rmMatCanvas");
-
-        rmMatCanvas->setVisible(false);
     }
     else if (name == "Diff. Red") {
-        ofFloatColor matColor = objInfos[objTarget]->materials()[matTarget].getDiffuseColor();
+        ofFloatColor matColor = objInfos[objTarget]->material().getDiffuseColor();
         ofxUISlider *rslider = (ofxUISlider *) e.widget;
 
-        objInfos[objTarget]->materials()[matTarget].setDiffuseColor(ofFloatColor(rslider->getNormalizedValue(), matColor[1], matColor[2]));
+        objInfos[objTarget]->material().setDiffuseColor(ofFloatColor(rslider->getNormalizedValue(), matColor[1], matColor[2]));
     }
     else if (name == "Diff. Green") {
-        ofFloatColor matColor = objInfos[objTarget]->materials()[matTarget].getDiffuseColor();
+        ofFloatColor matColor = objInfos[objTarget]->material().getDiffuseColor();
         ofxUISlider *rslider = (ofxUISlider *) e.widget;
 
-        objInfos[objTarget]->materials()[matTarget].setDiffuseColor(ofFloatColor(matColor[0], rslider->getNormalizedValue(), matColor[2]));
+        objInfos[objTarget]->material().setDiffuseColor(ofFloatColor(matColor[0], rslider->getNormalizedValue(), matColor[2]));
     }
     else if (name == "Diff. Blue") {
-        ofFloatColor matColor = objInfos[objTarget]->materials()[matTarget].getDiffuseColor();
+        ofFloatColor matColor = objInfos[objTarget]->material().getDiffuseColor();
         ofxUISlider *rslider = (ofxUISlider *) e.widget;
 
-        objInfos[objTarget]->materials()[matTarget].setDiffuseColor(ofFloatColor(matColor[0], matColor[1], rslider->getNormalizedValue()));
+        objInfos[objTarget]->material().setDiffuseColor(ofFloatColor(matColor[0], matColor[1], rslider->getNormalizedValue()));
     }
     else if (name == "Spec. Red") {
-        ofFloatColor matColor = objInfos[objTarget]->materials()[matTarget].getSpecularColor();
+        ofFloatColor matColor = objInfos[objTarget]->material().getSpecularColor();
         ofxUISlider *rslider = (ofxUISlider *) e.widget;
 
-        objInfos[objTarget]->materials()[matTarget].setSpecularColor(ofFloatColor(rslider->getNormalizedValue(), matColor[1], matColor[2]));
+        objInfos[objTarget]->material().setSpecularColor(ofFloatColor(rslider->getNormalizedValue(), matColor[1], matColor[2]));
     }
     else if (name == "Spec. Green") {
-        ofFloatColor matColor = objInfos[objTarget]->materials()[matTarget].getSpecularColor();
+        ofFloatColor matColor = objInfos[objTarget]->material().getSpecularColor();
         ofxUISlider *rslider = (ofxUISlider *) e.widget;
 
-        objInfos[objTarget]->materials()[matTarget].setSpecularColor(ofFloatColor(matColor[0], rslider->getNormalizedValue(), matColor[2]));
+        objInfos[objTarget]->material().setSpecularColor(ofFloatColor(matColor[0], rslider->getNormalizedValue(), matColor[2]));
     }
     else if (name == "Spec. Blue") {
-        ofFloatColor matColor = objInfos[objTarget]->materials()[matTarget].getSpecularColor();
+        ofFloatColor matColor = objInfos[objTarget]->material().getSpecularColor();
         ofxUISlider *rslider = (ofxUISlider *) e.widget;
 
-        objInfos[objTarget]->materials()[matTarget].setSpecularColor(ofFloatColor(matColor[0], matColor[1], rslider->getNormalizedValue()));
+        objInfos[objTarget]->material().setSpecularColor(ofFloatColor(matColor[0], matColor[1], rslider->getNormalizedValue()));
     }
     else if (name == "Amb. Red") {
-        ofFloatColor matColor = objInfos[objTarget]->materials()[matTarget].getAmbientColor();
+        ofFloatColor matColor = objInfos[objTarget]->material().getAmbientColor();
         ofxUISlider *rslider = (ofxUISlider *) e.widget;
 
-        objInfos[objTarget]->materials()[matTarget].setAmbientColor(ofFloatColor(rslider->getNormalizedValue(), matColor[1], matColor[2]));
+        objInfos[objTarget]->material().setAmbientColor(ofFloatColor(rslider->getNormalizedValue(), matColor[1], matColor[2]));
     }
     else if (name == "Amb. Green") {
-        ofFloatColor matColor = objInfos[objTarget]->materials()[matTarget].getAmbientColor();
+        ofFloatColor matColor = objInfos[objTarget]->material().getAmbientColor();
         ofxUISlider *rslider = (ofxUISlider *) e.widget;
 
-        objInfos[objTarget]->materials()[matTarget].setAmbientColor(ofFloatColor(matColor[0], rslider->getNormalizedValue(), matColor[2]));
+        objInfos[objTarget]->material().setAmbientColor(ofFloatColor(matColor[0], rslider->getNormalizedValue(), matColor[2]));
     }
     else if (name == "Amb. Blue") {
-        ofFloatColor matColor = objInfos[objTarget]->materials()[matTarget].getAmbientColor();
+        ofFloatColor matColor = objInfos[objTarget]->material().getAmbientColor();
         ofxUISlider *rslider = (ofxUISlider *) e.widget;
 
-        objInfos[objTarget]->materials()[matTarget].setAmbientColor(ofFloatColor(matColor[0], matColor[1], rslider->getNormalizedValue()));
+        objInfos[objTarget]->material().setAmbientColor(ofFloatColor(matColor[0], matColor[1], rslider->getNormalizedValue()));
     }
     else if (name == "Shininess") {
         ofxUISlider *rslider = (ofxUISlider *) e.widget;
 
-        objInfos[objTarget]->materials()[matTarget].setShininess(rslider->getValue());
+        objInfos[objTarget]->material().setShininess(rslider->getValue());
     }
 }
 

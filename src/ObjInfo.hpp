@@ -18,11 +18,10 @@ public:
     {}
     ~ObjInfo() {}
 
-    void addMaterial(const ofMaterial & p_newMat) {
-        m_mats.push_back(p_newMat);
-    }
-    void removeMaterial(int eraseTarget) {
-        m_mats.erase(m_mats.begin()+eraseTarget);
+    void resetMaterial() {
+        ofMaterial reset;
+
+        m_mat = reset;
     }
     void addShader(const ofShader & p_newShdr);
     void setType(PrimType p_type);
@@ -36,8 +35,8 @@ public:
     void setYScale(float scaleY) { m_scale[1] = scaleY; }
     void setZScale(float scaleZ) { m_scale[2] = scaleZ; }
 
-    inline const vector<ofMaterial> &materials() const { return m_mats; }
-    inline vector<ofMaterial> &materials()  { return m_mats; }
+    inline const ofMaterial &material () const { return m_mat; }
+    inline ofMaterial &material()  { return m_mat; }
     inline const vector<ofShader> &shaders() const { return m_shdrs; }
     inline PrimType type() const { return m_type; }
     inline bool drawFaces() const { return m_faces; }
@@ -64,6 +63,6 @@ private:
     PrimType m_type;
     string m_name;
     ofVec3f m_scale;
-    vector<ofMaterial> m_mats;
+    ofMaterial m_mat;
     vector<ofShader> m_shdrs;
 };
