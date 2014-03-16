@@ -1000,7 +1000,7 @@ void testApp::guiMaterials() {
         canvas->addSlider("Amb. Green", 0, 255, ofMap(mat.getAmbientColor()[1], 0.0, 1.0, 0.0, 255.0));
         canvas->addSlider("Amb. Blue", 0, 255, ofMap(mat.getAmbientColor()[2], 0.0, 1.0, 0.0, 255.0));
         canvas->addSpacer();
-        canvas->addSlider("Shininess", 0, 255, ofMap(mat.getAmbientColor()[0], 0.0, 1.0, 0.0, 255.0));
+        canvas->addSlider("Shininess", 0, 255, mat.getShininess());
     }
     canvas->autoSizeToFitWidgets();
 }
@@ -1114,6 +1114,11 @@ void testApp::guiMaterialsEvent(ofxUIEventArgs &e) {
         ofxUISlider *rslider = (ofxUISlider *) e.widget;
 
         objInfos[objTarget]->materials()[matTarget].setAmbientColor(ofFloatColor(matColor[0], matColor[1], rslider->getNormalizedValue()));
+    }
+    else if (name == "Shininess") {
+        ofxUISlider *rslider = (ofxUISlider *) e.widget;
+
+        objInfos[objTarget]->materials()[matTarget].setShininess(rslider->getValue());
     }
 }
 
