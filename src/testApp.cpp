@@ -471,7 +471,11 @@ void testApp::guiObjectsEvent(ofxUIEventArgs &e) {
     }
     else if (name == "Change target") {
         objTarget = (objTarget + 1) % objs.size();
+        matTarget = 0;
         guiObjects();
+        if (getSecondaryGUI("MatCanvas") && getSecondaryGUI("MatCanvas")->isVisible()) {
+            guiMaterials();
+        }
     }
     else if (name == "Remove this object") {
         ofxUILabelToggle * lblBut = (ofxUILabelToggle *)e.widget;
@@ -956,7 +960,6 @@ void testApp::guiMaterials() {
         stringstream ss("");
 
         ss << matTarget;
-        cout << "size: " << mats.size() << " target : " << matTarget << endl;
         canvas->addLabel("Current target: Material" + ss.str(), OFX_UI_FONT_SMALL);
         canvas->addLabelToggle("Change target", false);
         canvas->addLabelToggle("Remove this material", false);
@@ -966,6 +969,33 @@ void testApp::guiMaterials() {
         canvas->addLabel("Current target: None", OFX_UI_FONT_SMALL);
     }
     canvas->addLabelToggle("Add new material", false);
+    if (mats.size() > 0) {
+        ofMaterial &mat = objInfos[objTarget]->materials()[matTarget];
+
+        canvas->addLabel("Diffuse Color");
+        canvas->addSpacer();
+        canvas->addSlider("Diff. Red", 0, 255, ofMap(mat.getDiffuseColor()[0], 0.0, 1.0, 0.0, 255.0));
+        canvas->addSlider("Diff. Green", 0, 255, ofMap(mat.getDiffuseColor()[1], 0.0, 1.0, 0.0, 255.0));
+        canvas->addSlider("Diff. Blue", 0, 255, ofMap(mat.getDiffuseColor()[2], 0.0, 1.0, 0.0, 255.0));
+        canvas->addSpacer();
+        canvas->addLabel("Specular Color");
+        canvas->addSpacer();
+        canvas->addSlider("Spec. Red", 0, 255, ofMap(mat.getSpecularColor()[0], 0.0, 1.0, 0.0, 255.0));
+        canvas->addSlider("Spec. Green", 0, 255, ofMap(mat.getSpecularColor()[1], 0.0, 1.0, 0.0, 255.0));
+        canvas->addSlider("Spec. Blue", 0, 255, ofMap(mat.getSpecularColor()[2], 0.0, 1.0, 0.0, 255.0));
+        canvas->addSpacer();
+        canvas->addLabel("Ambient Color");
+        canvas->addSpacer();
+        canvas->addSlider("Amb. Red", 0, 255, ofMap(mat.getAmbientColor()[0], 0.0, 1.0, 0.0, 255.0));
+        canvas->addSlider("Amb. Green", 0, 255, ofMap(mat.getAmbientColor()[1], 0.0, 1.0, 0.0, 255.0));
+        canvas->addSlider("Amb. Blue", 0, 255, ofMap(mat.getAmbientColor()[2], 0.0, 1.0, 0.0, 255.0));
+        canvas->addSpacer();
+        canvas->addSlider("Amb. Red", 0, 255, ofMap(mat.getAmbientColor()[0], 0.0, 1.0, 0.0, 255.0));
+        canvas->addSlider("Amb. Green", 0, 255, ofMap(mat.getAmbientColor()[1], 0.0, 1.0, 0.0, 255.0));
+        canvas->addSlider("Amb. Blue", 0, 255, ofMap(mat.getAmbientColor()[2], 0.0, 1.0, 0.0, 255.0));
+        canvas->addSpacer();
+        canvas->addSlider("Shininess", 0, 255, ofMap(mat.getAmbientColor()[0], 0.0, 1.0, 0.0, 255.0));
+    }
     canvas->autoSizeToFitWidgets();
 }
 
