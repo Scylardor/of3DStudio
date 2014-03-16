@@ -83,11 +83,12 @@ void testApp::draw(){
 	cam.begin();
 	ofEnableLighting();
 	ofSetSmoothLighting(true);
+    for (size_t j = 0; j < lights.size(); j++) {
+        lights[j].enable();
+    }
 	for (size_t i = 0; i < objs.size(); i++) {
         objInfos[i]->material().begin();
-        for (size_t j = 0; j < lights.size(); j++) {
-            lights[j].enable();
-        }
+
         ofPushStyle();
         ofPushMatrix();
         ofEnableBlendMode(OF_BLENDMODE_ALPHA);
@@ -120,11 +121,11 @@ void testApp::draw(){
         ofPopMatrix();
         ofPopStyle();
         objInfos[i]->material().end();
-        for (size_t j = 0; j < lights.size(); j++) {
-            lights[j].disable();
-        }
-	}
 
+	}
+    for (size_t j = 0; j < lights.size(); j++) {
+        lights[j].disable();
+    }
     ofDisableLighting();
     ofFill();
     for (size_t i = 0; i < lights.size(); i++) {
@@ -981,9 +982,11 @@ void testApp::guiMaterials() {
         canvas->addSlider("Amb. Green", 0, 255, ofMap(mat.getAmbientColor()[1], 0.0, 1.0, 0.0, 255.0));
         canvas->addSlider("Amb. Blue", 0, 255, ofMap(mat.getAmbientColor()[2], 0.0, 1.0, 0.0, 255.0));
         canvas->addSpacer();
-        canvas->addSlider("Amb. Red", 0, 255, ofMap(mat.getAmbientColor()[0], 0.0, 1.0, 0.0, 255.0));
-        canvas->addSlider("Amb. Green", 0, 255, ofMap(mat.getAmbientColor()[1], 0.0, 1.0, 0.0, 255.0));
-        canvas->addSlider("Amb. Blue", 0, 255, ofMap(mat.getAmbientColor()[2], 0.0, 1.0, 0.0, 255.0));
+        canvas->addLabel("Emissive Color");
+        canvas->addSpacer();
+        canvas->addSlider("Emi. Red", 0, 255, ofMap(mat.getEmissiveColor()[0], 0.0, 1.0, 0.0, 255.0));
+        canvas->addSlider("Emi. Green", 0, 255, ofMap(mat.getEmissiveColor()[1], 0.0, 1.0, 0.0, 255.0));
+        canvas->addSlider("Emi. Blue", 0, 255, ofMap(mat.getEmissiveColor()[2], 0.0, 1.0, 0.0, 255.0));
         canvas->addSpacer();
         canvas->addSlider("Shininess", 0, 255, mat.getShininess());
     canvas->autoSizeToFitWidgets();
@@ -1050,6 +1053,25 @@ void testApp::guiMaterialsEvent(ofxUIEventArgs &e) {
 
         objInfos[objTarget]->material().setAmbientColor(ofFloatColor(matColor[0], matColor[1], rslider->getNormalizedValue()));
     }
+    else if (name == "Emi. Red") {
+        ofFloatColor matColor = objInfos[objTarget]->material().getEmissiveColor();
+        ofxUISlider *rslider = (ofxUISlider *) e.widget;
+
+        objInfos[objTarget]->material().setEmissiveColor(ofFloatColor(rslider->getNormalizedValue(), matColor[1], matColor[2]));
+    }
+    else if (name == "Emi. Green") {
+        ofFloatColor matColor = objInfos[objTarget]->material().getEmissiveColor();
+        ofxUISlider *rslider = (ofxUISlider *) e.widget;
+
+        objInfos[objTarget]->material().setEmissiveColor(ofFloatColor(matColor[0], rslider->getNormalizedValue(), matColor[2]));
+    }
+    else if (name == "Emi. Blue") {
+        ofFloatColor matColor = objInfos[objTarget]->material().getEmissiveColor();
+        ofxUISlider *rslider = (ofxUISlider *) e.widget;
+
+        objInfos[objTarget]->material().setEmissiveColor(ofFloatColor(matColor[0], matColor[1], rslider->getNormalizedValue()));
+    }
+
     else if (name == "Shininess") {
         ofxUISlider *rslider = (ofxUISlider *) e.widget;
 
