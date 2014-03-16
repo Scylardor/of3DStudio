@@ -91,7 +91,10 @@ void testApp::draw(){
         ofPushMatrix();
         ofEnableBlendMode(OF_BLENDMODE_ALPHA);
         ofSetColor(objInfos[i]->color());
-        ofScale(objInfos[i]->scale()[0], objInfos[i]->scale()[1], objInfos[i]->scale()[2]);
+      //  ofScale(objInfos[i]->scale()[0], objInfos[i]->scale()[1], objInfos[i]->scale()[2]);
+        for (size_t j = 0; j < objInfos[objTarget]->materials().size(); j++) {
+            objInfos[objTarget]->materials()[j].begin();
+        }
         if (objInfos[i]->drawFaces()) // draws the shape "normally"
         {
             objs[i]->drawFaces();
@@ -115,6 +118,9 @@ void testApp::draw(){
             ofSetColor(255, 0, 255);
             objs[i]->drawNormals(20, true);
         }
+//        for (size_t j = 0; j < objInfos[objTarget]->materials().size(); j++) {
+//            objInfos[objTarget]->materials()[j].end();
+//        }
         ofPopMatrix();
         ofPopStyle();
 	}
@@ -1055,7 +1061,60 @@ void testApp::guiMaterialsEvent(ofxUIEventArgs &e) {
 
         rmMatCanvas->setVisible(false);
     }
+    else if (name == "Diff. Red") {
+        ofFloatColor matColor = objInfos[objTarget]->materials()[matTarget].getDiffuseColor();
+        ofxUISlider *rslider = (ofxUISlider *) e.widget;
 
+        objInfos[objTarget]->materials()[matTarget].setDiffuseColor(ofFloatColor(rslider->getNormalizedValue(), matColor[1], matColor[2]));
+    }
+    else if (name == "Diff. Green") {
+        ofFloatColor matColor = objInfos[objTarget]->materials()[matTarget].getDiffuseColor();
+        ofxUISlider *rslider = (ofxUISlider *) e.widget;
+
+        objInfos[objTarget]->materials()[matTarget].setDiffuseColor(ofFloatColor(matColor[0], rslider->getNormalizedValue(), matColor[2]));
+    }
+    else if (name == "Diff. Blue") {
+        ofFloatColor matColor = objInfos[objTarget]->materials()[matTarget].getDiffuseColor();
+        ofxUISlider *rslider = (ofxUISlider *) e.widget;
+
+        objInfos[objTarget]->materials()[matTarget].setDiffuseColor(ofFloatColor(matColor[0], matColor[1], rslider->getNormalizedValue()));
+    }
+    else if (name == "Spec. Red") {
+        ofFloatColor matColor = objInfos[objTarget]->materials()[matTarget].getSpecularColor();
+        ofxUISlider *rslider = (ofxUISlider *) e.widget;
+
+        objInfos[objTarget]->materials()[matTarget].setSpecularColor(ofFloatColor(rslider->getNormalizedValue(), matColor[1], matColor[2]));
+    }
+    else if (name == "Spec. Green") {
+        ofFloatColor matColor = objInfos[objTarget]->materials()[matTarget].getSpecularColor();
+        ofxUISlider *rslider = (ofxUISlider *) e.widget;
+
+        objInfos[objTarget]->materials()[matTarget].setSpecularColor(ofFloatColor(matColor[0], rslider->getNormalizedValue(), matColor[2]));
+    }
+    else if (name == "Spec. Blue") {
+        ofFloatColor matColor = objInfos[objTarget]->materials()[matTarget].getSpecularColor();
+        ofxUISlider *rslider = (ofxUISlider *) e.widget;
+
+        objInfos[objTarget]->materials()[matTarget].setSpecularColor(ofFloatColor(matColor[0], matColor[1], rslider->getNormalizedValue()));
+    }
+    else if (name == "Amb. Red") {
+        ofFloatColor matColor = objInfos[objTarget]->materials()[matTarget].getAmbientColor();
+        ofxUISlider *rslider = (ofxUISlider *) e.widget;
+
+        objInfos[objTarget]->materials()[matTarget].setAmbientColor(ofFloatColor(rslider->getNormalizedValue(), matColor[1], matColor[2]));
+    }
+    else if (name == "Amb. Green") {
+        ofFloatColor matColor = objInfos[objTarget]->materials()[matTarget].getAmbientColor();
+        ofxUISlider *rslider = (ofxUISlider *) e.widget;
+
+        objInfos[objTarget]->materials()[matTarget].setAmbientColor(ofFloatColor(matColor[0], rslider->getNormalizedValue(), matColor[2]));
+    }
+    else if (name == "Amb. Blue") {
+        ofFloatColor matColor = objInfos[objTarget]->materials()[matTarget].getAmbientColor();
+        ofxUISlider *rslider = (ofxUISlider *) e.widget;
+
+        objInfos[objTarget]->materials()[matTarget].setAmbientColor(ofFloatColor(matColor[0], matColor[1], rslider->getNormalizedValue()));
+    }
 }
 
 
