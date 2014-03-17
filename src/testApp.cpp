@@ -1211,7 +1211,8 @@ void testApp::guiLightsEvent(ofxUIEventArgs &e) {
             newLight.setPointLight();
         } else if (radio->getActiveName() == "Directional light") {
             newLight.setDirectional();
-            newLight.setOrientation( ofVec3f(0, 90, 0) );
+          //  newLight.setOrientation( ofVec3f(0, 90, 0) );
+            cout << newLight.getOrientationEuler() << endl;
         } else if (radio->getActiveName() == "Spotlight") {
             newLight.setSpotlight();
         }
@@ -1222,6 +1223,7 @@ void testApp::guiLightsEvent(ofxUIEventArgs &e) {
         }
         // Adding the new light in the vector
         lights.push_back(newLight);
+
         // Restoring the old positions. (Adding a new light resets all positions to (0,0,0) )
         for (int i = 0; i < positions.size(); i++) {
             lights[i].setPosition(positions[i]);
@@ -1337,6 +1339,21 @@ void testApp::guiLightProperties() {
     sgui->addSlider("Constant", 0., 1., lights[lightTarget].getAttenuationConstant());
     sgui->addSlider("Linear", 0., 1., lights[lightTarget].getAttenuationLinear());
     sgui->addSlider("Quadratic", 0., 1., lights[lightTarget].getAttenuationQuadratic());
+    if (lights[lightTarget].getIsSpotlight() || lights[lightTarget].getIsDirectional()) {
+        sgui->addSpacer();
+        sgui->addLabel("Orientation");
+        sgui->addSpacer();
+        sgui->addSlider("Angle X", -360., 360., lights[lightTarget].getOrientationEuler()[0]);
+        sgui->addSlider("Angle Y", -360., 360., lights[lightTarget].getOrientationEuler()[1]);
+        sgui->addSlider("Angle Z", -360., 360., lights[lightTarget].getOrientationEuler()[2]);
+    }
+    if (lights[lightTarget].getIsSpotlight()) {
+        sgui->addSpacer();
+        sgui->addLabel("Spotlight");
+        sgui->addSpacer();
+        sgui->addSlider("Concentration", 0., 360., lights[lightTarget].getSpotConcentration());
+        sgui->addSlider("Cut-Off", 0., 360., lights[lightTarget].getSpotlightCutOff());
+    }
     sgui->autoSizeToFitWidgets();
     ofAddListener(sgui->newGUIEvent,this, &testApp::guiLightPropsEvent); // this function listens to the events of the secondary GUI too
 }
@@ -1359,5 +1376,34 @@ void testApp::guiLightPropsEvent(ofxUIEventArgs &e) {
         ofxUISlider *rslider = (ofxUISlider *) e.widget;
 
         lights[lightTarget].setAttenuation(lights[lightTarget].getAttenuationConstant(), lights[lightTarget].getAttenuationLinear(), rslider->getValue());
+    }
+    else if (name == "Angle X") {
+        ofxUISlider *rslider = (ofxUISlider *) e.widget;
+        ofVec3f o(rslider->getValue(), lights[lightTarget].getOrientationEuler()[1], lights[lightTarget].getOrientationEuler()[2]);
+
+        lights[lightTarget].setOrientation(o);
+
+    }
+    else if (name == "Angle Y") {
+        ofxUISlider *rslider = (ofxUISlider *) e.widget;
+        ofVec3f o(lights[lightTarget].getOrientationEuler()[0], rslider->getValue(), lights[lightTarget].getOrientationEuler()[2]);
+
+        lights[lightTarget].setOrientation(o);
+    }
+    else if (name == "Angle Z") {
+        ofxUISlider *rslider = (ofxUISlider *) e.widget;
+        ofVec3f o(lights[lightTarget].getOrientationEuler()[0], lights[lightTarget].getOrientationEuler()[1], rslider->getValue());
+
+        lights[lightTarget].setOrientation(o);
+    }
+    else if (name == "Concentration") {
+        ofxUISlider *rslider = (ofxUISlider *) e.widget;
+
+        lights[lightTarget].setSpotConcentration(rslider->getValue());
+    }
+    else if (name == "Cut-Off") {
+        ofxUISlider *rslider = (ofxUISlider *) e.widget;
+
+        lights[lightTarget].setSpotlightCutOff(rslider->getValue());
     }
 }
