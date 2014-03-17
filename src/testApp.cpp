@@ -240,6 +240,22 @@ void testApp::hideSecondaryGUIS() {
     }
 }
 
+void testApp::showSecondaryGUI(const string & name, ctxtFunc build_gui) {
+    ofxUICanvas *sgui = getSecondaryGUI(name);
+
+    if (sgui) {
+        sgui->setVisible(true);
+    } else {
+        sgui = new ofxUICanvas(gui->getGlobalCanvasWidth(), 0, OFX_UI_GLOBAL_CANVAS_WIDTH, OFX_UI_GLOBAL_CANVAS_WIDTH);
+        sgui->setName(name);
+        guis.push_back(sgui);
+    }
+    sgui->clearWidgets();
+    (this->*build_gui)();
+}
+
+
+
 void testApp::guiMain() {
     gui->clearWidgets();
     gui->addLabel("Main Menu", OFX_UI_FONT_MEDIUM);
@@ -1136,6 +1152,8 @@ void testApp::guiLights() {
     gui->addSlider("Amb. Green", 0, 255, ofMap(lights[lightTarget].getAmbientColor()[1], 0.0, 1.0, 0.0, 255.0));
     gui->addSlider("Amb. Blue", 0, 255, ofMap(lights[lightTarget].getAmbientColor()[2], 0.0, 1.0, 0.0, 255.0));
     gui->addSpacer();
+    gui->addLabelToggle("Properties", false);
+    gui->addSpacer();
     gui->addLabelButton("Back", false);
     gui->autoSizeToFitWidgets();
     guiChangeListener(&testApp::guiLightsEvent);
@@ -1296,10 +1314,29 @@ void testApp::guiLightsEvent(ofxUIEventArgs &e) {
         ofxUISlider *rslider = (ofxUISlider *) e.widget;
 
         lights[lightTarget].setAmbientColor(ofFloatColor(liteColor[0], liteColor[1], rslider->getNormalizedValue()));
+    } else if (name == "Properties") {
+        ofxUILabelToggle * button = (ofxUILabelToggle *) e.widget; // get the button
+
+        hideSecondaryGUIS();
+        if (button->getValue()) {
+            showSecondaryGUI("lightProps", &testApp::guiLightProperties);
+        }
     } else if (name == "Back") {
         destroySecondaryGUIs();
         contexts.second = &testApp::guiMain;
     }
 }
 
+void testApp::guiLightProperties() {
+    ofxUICanvas *sgui = getSecondaryGUI("lightProps");
+
+    sgui->addLabel("Properties");
+    sgui->addSpacer();
+    sgui->addLabel("Attenuation");
+    sgui->addSpacer();
+    sgui->addSlider("Constant", 0., 1., lights[lightTarget].getAttenuationConstant());
+    sgui->addSlider("Linear", 0., 1., lights[lightTarget].getAttenuationLinear());
+    sgui->addSlider("Quadratic", 0., 1., lights[lightTarget].getAttenuationQuadratic());
+    sgui->autoSizeToFitWidgets();
+}
 

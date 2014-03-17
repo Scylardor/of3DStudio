@@ -10,10 +10,6 @@ class testApp : public ofBaseApp{
 public:
     typedef void (testApp::*ctxtFunc)();
     typedef void (testApp::*eventFunc)(ofxUIEventArgs &e);
-    typedef enum Context {
-        MAIN = 0,
-        BACKGROUND
-    }   Context;
 
     void setup();
     void update();
@@ -33,7 +29,7 @@ public:
     void guiChangeListener(eventFunc ListenerFunc);
     void destroySecondaryGUIs();
     void hideSecondaryGUIS();
-
+    void showSecondaryGUI(const string & name, ctxtFunc build_gui);
 
 
     void guiEvent(ofxUIEventArgs &e);
@@ -59,6 +55,9 @@ public:
     void guiLights();
     void guiLightsEvent(ofxUIEventArgs &e);
     void guiNewLightEvent(ofxUIEventArgs &e);
+
+    void guiLightProperties();
+    void guiLightPropertiesEvent(ofxUIEventArgs &e);
 
     ofxUICanvas *getSecondaryGUI(const string & name);
     string getLightName(ofLight &light);
