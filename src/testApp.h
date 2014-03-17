@@ -32,11 +32,14 @@ public:
 
     void guiChangeListener(eventFunc ListenerFunc);
     void destroySecondaryGUIs();
-    void guiMain();
-    void guiMainEvent(ofxUIEventArgs &e);
+    void hideSecondaryGUIS();
+
 
 
     void guiEvent(ofxUIEventArgs &e);
+
+    void guiMain();
+    void guiMainEvent(ofxUIEventArgs &e);
 
 
     void guiBackground();
@@ -45,8 +48,13 @@ public:
 
     void guiObjects();
     void guiObjectsEvent(ofxUIEventArgs &e);
+
+    void guiObjectProperties();
+    void guiObjectPropertiesEvent(ofxUIEventArgs &e);
+
     void guiMaterials();
     void guiMaterialsEvent(ofxUIEventArgs &e);
+
 
     void guiLights();
     void guiLightsEvent(ofxUIEventArgs &e);

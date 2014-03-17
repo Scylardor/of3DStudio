@@ -234,6 +234,12 @@ void testApp::destroySecondaryGUIs() {
     guis.clear();
 }
 
+void testApp::hideSecondaryGUIS() {
+    for (int i = 0; i < guis.size(); i++) {
+        guis[i]->setVisible(false);
+    }
+}
+
 void testApp::guiMain() {
     gui->clearWidgets();
     gui->addLabel("Main Menu", OFX_UI_FONT_MEDIUM);
@@ -421,11 +427,6 @@ void testApp::guiObjects() {
     gui->addSpacer();
     gui->addLabelToggle("Materials", false);
     gui->addLabelToggle("Other Properties", false);
-
-//    gui->addLabel("Scaling");
-//    gui->addSlider("X Scale", 0.1, 30.0, objInfos[objTarget]->scaleX());
-//	gui->addSlider("Y Scale", 0.1, 30.0, objInfos[objTarget]->scaleY());
-//    gui->addSlider("Z Scale", 0.1, 30.0, objInfos[objTarget]->scaleZ());
     }
     gui->addSpacer();
     gui->addLabelButton("Back", false);
@@ -491,6 +492,7 @@ void testApp::guiObjectsEvent(ofxUIEventArgs &e) {
         ofxUICanvas *rmObjCanvas = getSecondaryGUI("rmObjCanvas"); // get the GUI, or NULL if it's the first time
 
         if (lblBut->getValue()) { // If the button is ON : show the GUI !
+            hideSecondaryGUIS();
             if (rmObjCanvas == NULL) // first time
             {
                 rmObjCanvas = new ofxUICanvas(gui->getGlobalCanvasWidth(), 0, OFX_UI_GLOBAL_CANVAS_WIDTH, OFX_UI_GLOBAL_CANVAS_WIDTH);
@@ -587,6 +589,7 @@ void testApp::guiObjectsEvent(ofxUIEventArgs &e) {
         ofxUICanvas *canvas = getSecondaryGUI("MatCanvas"); // get the GUI, or NULL if it's the first time
 
         if (lblBut->getValue()) { // If the button is ON : show the GUI !
+                hideSecondaryGUIS();
             if (canvas == NULL) // first time
             {
                 canvas = new ofxUICanvas(gui->getGlobalCanvasWidth(), 0, OFX_UI_GLOBAL_CANVAS_WIDTH, OFX_UI_GLOBAL_CANVAS_WIDTH);
@@ -608,111 +611,207 @@ void testApp::guiObjectsEvent(ofxUIEventArgs &e) {
         ofxUICanvas *ObjCanvas = getSecondaryGUI("ObjCanvas"); // get the GUI, or NULL if it's the first time
 
         if (lblBut->getValue()) { // If the button is ON : show the GUI !
-            if (ObjCanvas == NULL) // first time
-            {
-                ObjCanvas = new ofxUICanvas(gui->getGlobalCanvasWidth(), 0, OFX_UI_GLOBAL_CANVAS_WIDTH, OFX_UI_GLOBAL_CANVAS_WIDTH);
-                guis.push_back(ObjCanvas);
-                ofAddListener(ObjCanvas->newGUIEvent,this, &testApp::guiObjectsEvent); // this function listens to the events of the secondary GUI too
-            }
-            else { // If the new object GUI was just hidden, show it and reset widgets
-                ObjCanvas->clearWidgets();
-                ObjCanvas->setVisible(true);
-            }
-            // Initialize the "New object" secondary GUI
-            ObjCanvas->setName("ObjCanvas");
-            switch (objInfos[objTarget]->type())
-            {
-            case PLANE:
-            {
-                ofPlanePrimitive *plane = reinterpret_cast<ofPlanePrimitive*>(objs[objTarget]);
-
-                ObjCanvas->addLabel("Plane");
-                ObjCanvas->addSpacer();
-                ObjCanvas->addSlider("Width", 0.1, 3000.0, plane->getWidth());
-                ObjCanvas->addSlider("Height", 0.1, 3000.0, plane->getHeight());
-                ObjCanvas->addSlider("Columns", 1., 100., plane->getNumColumns());
-                ObjCanvas->addSlider("Rows", 1., 100., plane->getNumRows());
-                break;
-            }
-            case BOX:
-            {
-                ofBoxPrimitive *box = reinterpret_cast<ofBoxPrimitive*>(objs[objTarget]);
-
-                ObjCanvas->addLabel("Box");
-                ObjCanvas->addSpacer();
-                ObjCanvas->addSlider("Width", 0.1, 3000.0, box->getWidth());
-                ObjCanvas->addSlider("Height", 0.1, 3000.0, box->getHeight());
-                ObjCanvas->addSlider("Depth", 0.1, 3000.0, box->getDepth());
-                ObjCanvas->addSlider("Width Resolution", 1., 100., box->getResolutionWidth());
-                ObjCanvas->addSlider("Height Resolution", 1., 100., box->getResolutionHeight());
-                ObjCanvas->addSlider("Depth Resolution", 1., 100., box->getResolutionDepth());
-                break;
-            }
-            case SPHERE:
-            {
-                ofSpherePrimitive *sphere = reinterpret_cast<ofSpherePrimitive*>(objs[objTarget]);
-
-                ObjCanvas->addLabel("Sphere");
-                ObjCanvas->addSpacer();
-                ObjCanvas->addSlider("Radius", 1.0, 3000.0, sphere->getRadius());
-                ObjCanvas->addSlider("Resolution", 1.0, 100.0, sphere->getResolution());
-                break;
-            }
-
-            case CONE:
-            {
-                ofConePrimitive *cone = reinterpret_cast<ofConePrimitive*>(objs[objTarget]);
-
-                ObjCanvas->addLabel("Cone");
-                ObjCanvas->addSpacer();
-                ObjCanvas->addSlider("Radius", 1.0, 3000.0, cone->getRadius());
-                ObjCanvas->addSlider("Height", 1.0, 3000.0, cone->getHeight());
-                ObjCanvas->addSlider("Radius Resolution", 1.0, 100.0, cone->getResolutionRadius());
-                ObjCanvas->addSlider("Height Resolution", 1.0, 100.0, cone->getResolutionHeight());
-                ObjCanvas->addSlider("Cap Resolution", 1.0, 100.0, cone->getResolutionCap());
-                break;
-            }
-            case CYLINDER:
-            {
-                ofCylinderPrimitive *cylinder = reinterpret_cast<ofCylinderPrimitive*>(objs[objTarget]);
-
-                ObjCanvas->addLabel("Cylinder");
-                ObjCanvas->addSpacer();
-                ObjCanvas->addSlider("Radius", 1.0, 3000.0, cylinder->getRadius());
-                ObjCanvas->addSlider("Height", 1.0, 3000.0, cylinder->getHeight());
-                ObjCanvas->addSlider("Radius Resolution", 1.0, 100.0, cylinder->getResolutionRadius());
-                ObjCanvas->addSlider("Height Resolution", 1.0, 100.0, cylinder->getResolutionHeight());
-                ObjCanvas->addSlider("Cap Resolution", 1.0, 100.0, cylinder->getResolutionCap());
-                break;
-            }
-            case ICOSPHERE:
-            {
-                ofIcoSpherePrimitive *sphere = reinterpret_cast<ofIcoSpherePrimitive*>(objs[objTarget]);
-
-                ObjCanvas->addLabel("IcoSphere");
-                ObjCanvas->addSpacer();
-                ObjCanvas->addSlider("Radius", 1.0, 1000.0, sphere->getRadius());
-                // Here a very little window for resolution because icosphere is very consuming to render at high resolution.
-                // Be safe out there. Don't blow up your system by asking a resolution 100 Icosphere.
-                ObjCanvas->addSlider("Resolution", 1.0, 5.0, sphere->getResolution());
-                break;
-            }
-            default:
-                ObjCanvas->addLabel("Primitive");
-                break;
-            }
-            ObjCanvas->autoSizeToFitWidgets();
+            hideSecondaryGUIS();
+            guiObjectProperties();
         } else { // If the button is OFF : hide the "New object" GUI
             ObjCanvas->setVisible(false);
         }
-
-
+	}
+	 else if (name == "Back") {
+	    destroySecondaryGUIs();
+	    contexts.second = &testApp::guiMain;
 	}
 
+	// Create New Object GUI events
+	//-----------------------------
+    else if (name == "OK")
+	{
+	    ofxUICanvas *newObjCanvas = getSecondaryGUI("newObjCanvas");
+        ofxUIRadio *radio = (ofxUIRadio *) newObjCanvas->getWidget("Object Type");
+        ofxUILabelToggle * lblBut = (ofxUILabelToggle *)e.widget;
+        of3dPrimitive *newObj = NULL;
+        PrimitiveType type;
+        string typeName;
+
+        if (radio) {
+            typeName = radio->getActiveName();
+        } else {
+            cerr << "guiObjectsEvent::ERROR: Object Type radio button is NULL" << endl;
+        }
+        // Set the object type according to the user's choice.
+        if (typeName == "Plane") {
+            newObj = new ofPlanePrimitive();
+            type = PLANE;
+        } else if (typeName == "Box") {
+            newObj = new ofBoxPrimitive();
+            type = BOX;
+        } else if (typeName == "Sphere") {
+            newObj = new ofSpherePrimitive();
+            type = SPHERE;
+        } else if (typeName == "Cone") {
+            newObj = new ofConePrimitive();
+            type = CONE;
+        } else if (typeName == "Cylinder") {
+            newObj = new ofCylinderPrimitive();
+            type = CYLINDER;
+        } else if (typeName == "IcoSphere") {
+            newObj = new ofIcoSpherePrimitive();
+            type = ICOSPHERE;
+        }
+        // Adding the new light in the vector
+        if (newObj) {
+            stringstream ss("");
+
+            objs.push_back(newObj);
+            ss << objs.size();
+            objInfos.push_back(new ObjInfo(type, radio->getActiveName() + ss.str()));
+        }
+        // Set the new light as the new target
+        objTarget = objs.size()-1;
+        // Hide the 'new light' canvas
+        newObjCanvas->setVisible(false);
+        // Refresh the main canvas.
+        guiObjects();
+	}
+    else if (name == "Cancel")
+	{
+        ofxUICanvas *newObjCanvas = getSecondaryGUI("newObjCanvas");
+        ofxUILabelToggle *toggle = (ofxUILabelToggle *) gui->getWidget("Create new object");
+
+        newObjCanvas->setVisible(false);
+        toggle->setValue(false);
+	}
+
+	// Remove Object GUI events
+	//-----------------------------
+	else if (name == "Yes") {
+        ofxUICanvas *rmObjCanvas = getSecondaryGUI("rmObjCanvas");
+
+        objs.erase(objs.begin()+objTarget);
+        objInfos.erase(objInfos.begin()+objTarget);
+        if (objs.size() == 0) {
+            objTarget = -1;
+        } else {
+            objTarget = (objTarget + 1) % objs.size();
+        }
+        rmObjCanvas->setVisible(false);
+        guiObjects(); // refresh GUI
+	}
+	else if (name == "No") {
+        ofxUICanvas *rmObjCanvas = getSecondaryGUI("rmObjCanvas");
+        ofxUILabelToggle *toggle = (ofxUILabelToggle *) gui->getWidget("Remove this object");
+
+        rmObjCanvas->setVisible(false);
+        toggle->setValue(false);
+	}
+
+}
+
+void testApp::guiObjectProperties() {
+    ofxUICanvas *ObjCanvas = getSecondaryGUI("ObjCanvas"); // get the GUI, or NULL if it's the first time
+
+    if (ObjCanvas == NULL) // first time
+    {
+        ObjCanvas = new ofxUICanvas(gui->getGlobalCanvasWidth(), 0, OFX_UI_GLOBAL_CANVAS_WIDTH, OFX_UI_GLOBAL_CANVAS_WIDTH);
+        guis.push_back(ObjCanvas);
+        ofAddListener(ObjCanvas->newGUIEvent,this, &testApp::guiObjectPropertiesEvent); // this function listens to the events of the secondary GUI too
+    }
+    else { // If the new object GUI was just hidden, show it and reset widgets
+        ObjCanvas->clearWidgets();
+        ObjCanvas->setVisible(true);
+    }
+    // Initialize the "New object" secondary GUI
+    ObjCanvas->setName("ObjCanvas");
+    switch (objInfos[objTarget]->type())
+    {
+    case PLANE:
+    {
+        ofPlanePrimitive *plane = reinterpret_cast<ofPlanePrimitive*>(objs[objTarget]);
+
+        ObjCanvas->addLabel("Plane");
+        ObjCanvas->addSpacer();
+        ObjCanvas->addSlider("Width", 0.1, 3000.0, plane->getWidth());
+        ObjCanvas->addSlider("Height", 0.1, 3000.0, plane->getHeight());
+        ObjCanvas->addSlider("Columns", 1., 100., plane->getNumColumns());
+        ObjCanvas->addSlider("Rows", 1., 100., plane->getNumRows());
+        break;
+    }
+    case BOX:
+    {
+        ofBoxPrimitive *box = reinterpret_cast<ofBoxPrimitive*>(objs[objTarget]);
+
+        ObjCanvas->addLabel("Box");
+        ObjCanvas->addSpacer();
+        ObjCanvas->addSlider("Width", 0.1, 3000.0, box->getWidth());
+        ObjCanvas->addSlider("Height", 0.1, 3000.0, box->getHeight());
+        ObjCanvas->addSlider("Depth", 0.1, 3000.0, box->getDepth());
+        ObjCanvas->addSlider("Width Resolution", 1., 100., box->getResolutionWidth());
+        ObjCanvas->addSlider("Height Resolution", 1., 100., box->getResolutionHeight());
+        ObjCanvas->addSlider("Depth Resolution", 1., 100., box->getResolutionDepth());
+        break;
+    }
+    case SPHERE:
+    {
+        ofSpherePrimitive *sphere = reinterpret_cast<ofSpherePrimitive*>(objs[objTarget]);
+
+        ObjCanvas->addLabel("Sphere");
+        ObjCanvas->addSpacer();
+        ObjCanvas->addSlider("Radius", 1.0, 3000.0, sphere->getRadius());
+        ObjCanvas->addSlider("Resolution", 1.0, 100.0, sphere->getResolution());
+        break;
+    }
+
+    case CONE:
+    {
+        ofConePrimitive *cone = reinterpret_cast<ofConePrimitive*>(objs[objTarget]);
+
+        ObjCanvas->addLabel("Cone");
+        ObjCanvas->addSpacer();
+        ObjCanvas->addSlider("Radius", 1.0, 3000.0, cone->getRadius());
+        ObjCanvas->addSlider("Height", 1.0, 3000.0, cone->getHeight());
+        ObjCanvas->addSlider("Radius Resolution", 1.0, 100.0, cone->getResolutionRadius());
+        ObjCanvas->addSlider("Height Resolution", 1.0, 100.0, cone->getResolutionHeight());
+        ObjCanvas->addSlider("Cap Resolution", 1.0, 100.0, cone->getResolutionCap());
+        break;
+    }
+    case CYLINDER:
+    {
+        ofCylinderPrimitive *cylinder = reinterpret_cast<ofCylinderPrimitive*>(objs[objTarget]);
+
+        ObjCanvas->addLabel("Cylinder");
+        ObjCanvas->addSpacer();
+        ObjCanvas->addSlider("Radius", 1.0, 3000.0, cylinder->getRadius());
+        ObjCanvas->addSlider("Height", 1.0, 3000.0, cylinder->getHeight());
+        ObjCanvas->addSlider("Radius Resolution", 1.0, 100.0, cylinder->getResolutionRadius());
+        ObjCanvas->addSlider("Height Resolution", 1.0, 100.0, cylinder->getResolutionHeight());
+        ObjCanvas->addSlider("Cap Resolution", 1.0, 100.0, cylinder->getResolutionCap());
+        break;
+    }
+    case ICOSPHERE:
+    {
+        ofIcoSpherePrimitive *sphere = reinterpret_cast<ofIcoSpherePrimitive*>(objs[objTarget]);
+
+        ObjCanvas->addLabel("IcoSphere");
+        ObjCanvas->addSpacer();
+        ObjCanvas->addSlider("Radius", 1.0, 1000.0, sphere->getRadius());
+        // Here a very little window for resolution because icosphere is very consuming to render at high resolution.
+        // Be safe out there. Don't blow up your system by asking a resolution 100 Icosphere.
+        ObjCanvas->addSlider("Resolution", 1.0, 5.0, sphere->getResolution());
+        break;
+    }
+    default:
+        ObjCanvas->addLabel("Primitive");
+        break;
+    }
+    ObjCanvas->autoSizeToFitWidgets();
+}
+
+void testApp::guiObjectPropertiesEvent(ofxUIEventArgs &e) {
+    string name = e.widget->getName();
 
     // PLANE options
     //--------------
-    else if (name == "Columns")
+    if (name == "Columns")
 	{
 	    ofxUISlider *rslider = (ofxUISlider *) e.widget;
 	    ofPlanePrimitive *plane = reinterpret_cast<ofPlanePrimitive*>(objs[objTarget]);
@@ -800,9 +899,6 @@ void testApp::guiObjectsEvent(ofxUIEventArgs &e) {
 		ofBoxPrimitive *box = reinterpret_cast<ofBoxPrimitive*>(objs[objTarget]);
 
 		box->setResolutionDepth(rslider->getValue());
-	} else if (name == "Back") {
-	    destroySecondaryGUIs();
-	    contexts.second = &testApp::guiMain;
 	}
 
     // SPHERE options
@@ -870,91 +966,12 @@ void testApp::guiObjectsEvent(ofxUIEventArgs &e) {
                 cyl->setResolutionCap(rslider->getValue());
             }
     }
-
-
-	// Create New Object GUI events
-	//-----------------------------
-    else if (name == "OK")
-	{
-	    ofxUICanvas *newObjCanvas = getSecondaryGUI("newObjCanvas");
-        ofxUIRadio *radio = (ofxUIRadio *) newObjCanvas->getWidget("Object Type");
-        ofxUILabelToggle * lblBut = (ofxUILabelToggle *)e.widget;
-        of3dPrimitive *newObj = NULL;
-        PrimitiveType type;
-        string typeName;
-
-        if (radio) {
-            typeName = radio->getActiveName();
-        } else {
-            cerr << "guiObjectsEvent::ERROR: Object Type radio button is NULL" << endl;
-        }
-        // Set the object type according to the user's choice.
-        if (typeName == "Plane") {
-            newObj = new ofPlanePrimitive();
-            type = PLANE;
-        } else if (typeName == "Box") {
-            newObj = new ofBoxPrimitive();
-            type = BOX;
-        } else if (typeName == "Sphere") {
-            newObj = new ofSpherePrimitive();
-            type = SPHERE;
-        } else if (typeName == "Cone") {
-            newObj = new ofConePrimitive();
-            type = CONE;
-        } else if (typeName == "Cylinder") {
-            newObj = new ofCylinderPrimitive();
-            type = CYLINDER;
-        } else if (typeName == "IcoSphere") {
-            newObj = new ofIcoSpherePrimitive();
-            type = ICOSPHERE;
-        }
-        // Adding the new light in the vector
-        if (newObj) {
-            stringstream ss("");
-
-            objs.push_back(newObj);
-            ss << objs.size();
-            objInfos.push_back(new ObjInfo(type, radio->getActiveName() + ss.str()));
-        }
-        // Set the new light as the new target
-        objTarget = objs.size()-1;
-        // Hide the 'new light' canvas
-        newObjCanvas->setVisible(false);
-        // Refresh the main canvas.
-        guiObjects();
-	}
-    else if (name == "Cancel")
-	{
-        ofxUICanvas *newObjCanvas = getSecondaryGUI("newObjCanvas");
-        ofxUILabelToggle *toggle = (ofxUILabelToggle *) gui->getWidget("Create new object");
-
-        newObjCanvas->setVisible(false);
-        toggle->setValue(false);
-	}
-
-	// Remove Object GUI events
-	//-----------------------------
-	else if (name == "Yes") {
-        ofxUICanvas *rmObjCanvas = getSecondaryGUI("rmObjCanvas");
-
-        objs.erase(objs.begin()+objTarget);
-        objInfos.erase(objInfos.begin()+objTarget);
-        if (objs.size() == 0) {
-            objTarget = -1;
-        } else {
-            objTarget = (objTarget + 1) % objs.size();
-        }
-        rmObjCanvas->setVisible(false);
-        guiObjects(); // refresh GUI
-	}
-	else if (name == "No") {
-        ofxUICanvas *rmObjCanvas = getSecondaryGUI("rmObjCanvas");
-        ofxUILabelToggle *toggle = (ofxUILabelToggle *) gui->getWidget("Remove this object");
-
-        rmObjCanvas->setVisible(false);
-        toggle->setValue(false);
-	}
 }
+
+
+
+
+
 
 void testApp::guiMaterials() {
     ofxUICanvas *canvas = getSecondaryGUI("MatCanvas"); // get the GUI, or NULL if it's the first time
@@ -991,6 +1008,10 @@ void testApp::guiMaterials() {
         canvas->addSlider("Shininess", 0, 255, mat.getShininess());
     canvas->autoSizeToFitWidgets();
 }
+
+
+
+
 
 void testApp::guiMaterialsEvent(ofxUIEventArgs &e) {
     string name = e.widget->getName();
