@@ -5,6 +5,10 @@
 #include "ofxUI.h"
 
 #include "ObjInfo.hpp"
+#include "LightInfo.hpp"
+
+// Informations about the lights in the scene.
+
 
 class testApp : public ofBaseApp{
 public:
@@ -66,6 +70,7 @@ public:
     vector<of3dPrimitive *> objs;
     vector<ObjInfo *> objInfos;
     vector<ofLight> lights;
+    vector<LightInfo *> lightInfos;
     ofColor backgroundColor;
     ofEasyCam cam;
     int objTarget;
@@ -73,6 +78,5 @@ public:
     int matTarget;
     pair<ctxtFunc, ctxtFunc> contexts;
     eventFunc cur_event_listener;
-    bool change;
     vector<ofxUICanvas *> guis;
 };

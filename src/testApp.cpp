@@ -2,22 +2,6 @@
 
 //--------------------------------------------------------------
 void testApp::setup(){
-//           guiTabBar = new ofxUITabBar();
-//
-//    for(int i = 0; i < 10; i++)
-//    {
-//        string index = ofToString(i);
-//        ofxUICanvas* gui = new ofxUICanvas();
-//        gui->setName("GUI" + index);
-//        gui->addLabel("GUI" + index);
-//        gui->addSpacer();
-//        gui->addSlider("SLIDER " + index, 0, 1.0, i/10.0);
-//        gui->add2DPad("PAD " + index, ofVec2f(-1, 1), ofVec2f(-1, 1), ofVec2f(0.0, 0.0));
-//        gui->autoSizeToFitWidgets();
-//        ofAddListener(gui->newGUIEvent,this,&testApp::guiEvent);
-//        guiTabBar->addCanvas(gui);
-//        guis.push_back(gui);
-//    }
     ofSetVerticalSync(true);
 	ofEnableSmoothing();
 	ofEnableDepthTest();
@@ -27,41 +11,11 @@ void testApp::setup(){
     lights.push_back(ofLight());
     lights[0].setPointLight();
     lights[0].setPosition(100, 100, 0);
+    lightInfos.push_back(new LightInfo("Pointlight0"));
     //set some sketch parameters
     //Background Color
     backgroundColor = ofColor(233, 52, 27);
-
     gui = new ofxUICanvas();
-
-
-    //guiBackground();
-  //  guiMain();
-    change = false;
-//    gui->addLabel("Background", OFX_UI_FONT_MEDIUM);
-//    gui->addSpacer();
-//    gui->addSlider("BG Red", 0, 255, backgroundColor.r);
-//    gui->addSlider("BG Green", 0, 255, backgroundColor.g);
-//    gui->addSlider("BG Blue", 0, 255, backgroundColor.b);
-//    gui->addSpacer();
-//    // Object controls
-//    gui->addLabel("Object Color", OFX_UI_FONT_MEDIUM);
-//    gui->addSpacer();
-//    gui->addSlider("RED", 0.0, 255.0, objInfos[0]->color()[0]);
-//	gui->addSlider("GREEN", 0.0, 255.0, objInfos[0]->color()[1]);
-//    gui->addSlider("BLUE", 0.0, 255.0, objInfos[0]->color()[2]);
-//    gui->addSlider("ALPHA", 0.0, 255.0, objInfos[0]->color()[3]);
-//    gui->addLabel("Object Position", OFX_UI_FONT_MEDIUM);
-//    gui->addSpacer();
-//    gui->addSlider("X", -2000.0, 2000.0, objs[0]->getPosition()[0]);
-//	gui->addSlider("Y", -2000.0, 2000.0, objs[0]->getPosition()[1]);
-//    gui->addSlider("Z", -2000.0, 2000.0, objs[0]->getPosition()[2]);
-//    gui->addSlider("RADIUS", 0.0, 600.0, radius);
-//	gui->addSlider("RESOLUTION", 3, 60, resolution);
-//    gui->addLabelToggle("DRAW FILL", drawFill);
-
-
-
-
     contexts.first = NULL;
     contexts.second = &testApp::guiMain;
     cur_event_listener = NULL;
@@ -84,17 +38,16 @@ void testApp::draw(){
 	ofEnableLighting();
 	ofSetSmoothLighting(true);
     for (size_t j = 0; j < lights.size(); j++) {
-        lights[j].enable();
+        if (lightInfos[j]->enabled()) {
+            lights[j].enable();
+        }
     }
 	for (size_t i = 0; i < objs.size(); i++) {
         objInfos[i]->material().begin();
-
         ofPushStyle();
         ofPushMatrix();
         ofEnableBlendMode(OF_BLENDMODE_ALPHA);
         ofSetColor(objInfos[i]->color());
-      //  ofScale(objInfos[i]->scale()[0], objInfos[i]->scale()[1], objInfos[i]->scale()[2]);
-
         if (objInfos[i]->drawFaces()) // draws the shape "normally"
         {
             objs[i]->drawFaces();
@@ -121,18 +74,20 @@ void testApp::draw(){
         ofPopMatrix();
         ofPopStyle();
         objInfos[i]->material().end();
-
 	}
     for (size_t j = 0; j < lights.size(); j++) {
-        lights[j].disable();
+        if (lightInfos[j]->enabled()) {
+            lights[j].disable();
+        }
     }
     ofDisableLighting();
     ofFill();
     for (size_t i = 0; i < lights.size(); i++) {
-        ofSetColor(lights[i].getDiffuseColor());
-        lights[i].draw();
+        if (lightInfos[i]->visible()) {
+            ofSetColor(lights[i].getDiffuseColor());
+            lights[i].draw();
+        }
 	}
-
 	cam.end();
 }
 
@@ -1125,8 +1080,10 @@ void testApp::guiLights() {
     string lightName = getLightName(lights[lightTarget]);
 
     gui->addLabel("Current target: " + lightName, OFX_UI_FONT_SMALL);
-    gui->addLabelButton("Change target", false);
     gui->addToggle("Create new light", false);
+    gui->addToggle("Invisible", !lightInfos[lightTarget]->visible());
+    gui->addToggle("Enabled", lightInfos[lightTarget]->enabled());
+    gui->addLabelButton("Change target", false);
     gui->addSpacer();
     gui->addLabel("Position");
     gui->addSpacer();
@@ -1162,6 +1119,11 @@ void testApp::guiLights() {
 void testApp::guiLightsEvent(ofxUIEventArgs &e) {
     string name = e.widget->getName();
 
+    if (name == "Invisible") {
+        lightInfos[lightTarget]->toggleVisibility();
+    } else if (name == "Enabled") {
+        lightInfos[lightTarget]->toggleEnable();
+    }
     if (name == "Change target") {
         lightTarget = (lightTarget + 1) % lights.size();
         guiLights();
@@ -1211,8 +1173,6 @@ void testApp::guiLightsEvent(ofxUIEventArgs &e) {
             newLight.setPointLight();
         } else if (radio->getActiveName() == "Directional light") {
             newLight.setDirectional();
-          //  newLight.setOrientation( ofVec3f(0, 90, 0) );
-            cout << newLight.getOrientationEuler() << endl;
         } else if (radio->getActiveName() == "Spotlight") {
             newLight.setSpotlight();
         }
