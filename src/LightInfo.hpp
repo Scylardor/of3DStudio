@@ -7,6 +7,9 @@ public:
     {
     }
 
+    ~LightInfo() { }
+
+
     void setName(const string & name) { m_name = name; }
     void toggleVisibility() { m_visible = !m_visible; }
     void toggleEnable() { m_enabled = !m_enabled; }

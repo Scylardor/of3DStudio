@@ -58,6 +58,8 @@ public:
 
     void guiLights();
     void guiLightsEvent(ofxUIEventArgs &e);
+
+    void guiNewLight();
     void guiNewLightEvent(ofxUIEventArgs &e);
 
     void guiLightProperties();

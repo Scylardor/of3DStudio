@@ -657,9 +657,13 @@ void testApp::guiObjectsEvent(ofxUIEventArgs &e) {
 	//-----------------------------
 	else if (name == "Yes") {
         ofxUICanvas *rmObjCanvas = getSecondaryGUI("rmObjCanvas");
+        vector<of3dPrimitive *>::iterator obj = objs.begin()+objTarget;
+        vector<ObjInfo *>::iterator obji = objInfos.begin()+objTarget;
 
+        delete (*obj);
         objs.erase(objs.begin()+objTarget);
-        objInfos.erase(objInfos.begin()+objTarget);
+        delete (*obji);
+        objInfos.erase(obji);
         if (objs.size() == 0) {
             objTarget = -1;
         } else {
@@ -1079,38 +1083,43 @@ void testApp::guiLights() {
     gui->addSpacer();
     string lightName = getLightName(lights[lightTarget]);
 
-    gui->addLabel("Current target: " + lightName, OFX_UI_FONT_SMALL);
-    gui->addToggle("Create new light", false);
-    gui->addToggle("Invisible", !lightInfos[lightTarget]->visible());
-    gui->addToggle("Enabled", lightInfos[lightTarget]->enabled());
-    gui->addLabelButton("Change target", false);
+    if (lights.size() > 0) {
+        gui->addLabel("Current target: " + lightName, OFX_UI_FONT_SMALL);
+        gui->addToggle("Invisible", !lightInfos[lightTarget]->visible());
+        gui->addToggle("Enabled", lightInfos[lightTarget]->enabled());
+        gui->addLabelButton("Remove this light", false);
+        gui->addLabelButton("Change target", false);
+    }
+    gui->addLabelToggle("Create new light", false);
     gui->addSpacer();
-    gui->addLabel("Position");
-    gui->addSpacer();
-    gui->addSlider("X", -3000.0, 3000.0, lights[lightTarget].getPosition()[0]);
-	gui->addSlider("Y", -3000.0, 3000.0, lights[lightTarget].getPosition()[1]);
-    gui->addSlider("Z", -3000.0, 3000.0, lights[lightTarget].getPosition()[2]);
-    gui->addSpacer();
-    gui->addLabel("Diffuse Color");
-    gui->addSpacer();
-    gui->addSlider("Diff. Red", 0, 255, ofMap(lights[lightTarget].getDiffuseColor()[0], 0.0, 1.0, 0.0, 255.0));
-    gui->addSlider("Diff. Green", 0, 255, ofMap(lights[lightTarget].getDiffuseColor()[1], 0.0, 1.0, 0.0, 255.0));
-    gui->addSlider("Diff. Blue", 0, 255, ofMap(lights[lightTarget].getDiffuseColor()[2], 0.0, 1.0, 0.0, 255.0));
-    gui->addSpacer();
-    gui->addLabel("Specular Color");
-    gui->addSpacer();
-    gui->addSlider("Spec. Red", 0, 255, ofMap(lights[lightTarget].getSpecularColor()[0], 0.0, 1.0, 0.0, 255.0));
-    gui->addSlider("Spec. Green", 0, 255, ofMap(lights[lightTarget].getSpecularColor()[1], 0.0, 1.0, 0.0, 255.0));
-    gui->addSlider("Spec. Blue", 0, 255, ofMap(lights[lightTarget].getSpecularColor()[2], 0.0, 1.0, 0.0, 255.0));
-    gui->addSpacer();
-    gui->addLabel("Ambient Color");
-    gui->addSpacer();
-    gui->addSlider("Amb. Red", 0, 255, ofMap(lights[lightTarget].getAmbientColor()[0], 0.0, 1.0, 0.0, 255.0));
-    gui->addSlider("Amb. Green", 0, 255, ofMap(lights[lightTarget].getAmbientColor()[1], 0.0, 1.0, 0.0, 255.0));
-    gui->addSlider("Amb. Blue", 0, 255, ofMap(lights[lightTarget].getAmbientColor()[2], 0.0, 1.0, 0.0, 255.0));
-    gui->addSpacer();
-    gui->addLabelToggle("Properties", false);
-    gui->addSpacer();
+    if (lights.size() > 0) {
+        gui->addLabel("Position");
+        gui->addSpacer();
+        gui->addSlider("X", -3000.0, 3000.0, lights[lightTarget].getPosition()[0]);
+        gui->addSlider("Y", -3000.0, 3000.0, lights[lightTarget].getPosition()[1]);
+        gui->addSlider("Z", -3000.0, 3000.0, lights[lightTarget].getPosition()[2]);
+        gui->addSpacer();
+        gui->addLabel("Diffuse Color");
+        gui->addSpacer();
+        gui->addSlider("Diff. Red", 0, 255, ofMap(lights[lightTarget].getDiffuseColor()[0], 0.0, 1.0, 0.0, 255.0));
+        gui->addSlider("Diff. Green", 0, 255, ofMap(lights[lightTarget].getDiffuseColor()[1], 0.0, 1.0, 0.0, 255.0));
+        gui->addSlider("Diff. Blue", 0, 255, ofMap(lights[lightTarget].getDiffuseColor()[2], 0.0, 1.0, 0.0, 255.0));
+        gui->addSpacer();
+        gui->addLabel("Specular Color");
+        gui->addSpacer();
+        gui->addSlider("Spec. Red", 0, 255, ofMap(lights[lightTarget].getSpecularColor()[0], 0.0, 1.0, 0.0, 255.0));
+        gui->addSlider("Spec. Green", 0, 255, ofMap(lights[lightTarget].getSpecularColor()[1], 0.0, 1.0, 0.0, 255.0));
+        gui->addSlider("Spec. Blue", 0, 255, ofMap(lights[lightTarget].getSpecularColor()[2], 0.0, 1.0, 0.0, 255.0));
+        gui->addSpacer();
+        gui->addLabel("Ambient Color");
+        gui->addSpacer();
+        gui->addSlider("Amb. Red", 0, 255, ofMap(lights[lightTarget].getAmbientColor()[0], 0.0, 1.0, 0.0, 255.0));
+        gui->addSlider("Amb. Green", 0, 255, ofMap(lights[lightTarget].getAmbientColor()[1], 0.0, 1.0, 0.0, 255.0));
+        gui->addSlider("Amb. Blue", 0, 255, ofMap(lights[lightTarget].getAmbientColor()[2], 0.0, 1.0, 0.0, 255.0));
+        gui->addSpacer();
+        gui->addLabelToggle("Properties", false);
+        gui->addSpacer();
+    }
     gui->addLabelButton("Back", false);
     gui->autoSizeToFitWidgets();
     guiChangeListener(&testApp::guiLightsEvent);
@@ -1121,50 +1130,42 @@ void testApp::guiLightsEvent(ofxUIEventArgs &e) {
 
     if (name == "Invisible") {
         lightInfos[lightTarget]->toggleVisibility();
-    } else if (name == "Enabled") {
+    }
+    else if (name == "Enabled") {
         lightInfos[lightTarget]->toggleEnable();
     }
-    if (name == "Change target") {
+    else if (name == "Remove this light") {
+        // The if is due to a unwanted effect of hitting the button : sometimes the event is triggered twice.
+        // If there is just one light left, this causes a crash. But if there's no more lights (lights.size() = 0)
+        // we can avoid the crash by simply checking this value.
+        if (lights.size() > 0) {
+            vector<ofLight>::iterator light = lights.begin()+lightTarget;
+            vector<LightInfo *>::iterator lighti = lightInfos.begin()+lightTarget;
+
+            delete (*lighti);
+            lights.erase(light);
+            lightInfos.erase(lighti);
+            lightTarget = lights.size()-1;
+        }
+        contexts.first = NULL;
+        contexts.second = &testApp::guiLights;
+    }
+    else if (name == "Change target") {
         lightTarget = (lightTarget + 1) % lights.size();
         guiLights();
     }
-    if (name == "Create new light") { // The button to open the "New Light" secondary GUI has been clicked
-        ofxUIToggle * toggle = (ofxUIToggle *) e.widget; // get the button
-        ofxUICanvas *newLightCanvas = getSecondaryGUI("newLightCanvas"); // get the GUI, or NULL if it's the first time
+    else if (name == "Create new light") { // The button to open the "New Light" secondary GUI has been clicked
+        ofxUILabelToggle * toggle = (ofxUILabelToggle *) e.widget; // get the button
+        ofxUICanvas *newLightCanvas = getSecondaryGUI("newLight"); // get the GUI, or NULL if it's the first time
 
         if (toggle->getValue()) { // If the button is ON : show the GUI !
-            if (newLightCanvas == NULL) // first time
-            {
-                newLightCanvas = new ofxUICanvas(gui->getGlobalCanvasWidth(), 0, OFX_UI_GLOBAL_CANVAS_WIDTH, OFX_UI_GLOBAL_CANVAS_WIDTH);
-                guis.push_back(newLightCanvas);
-                ofAddListener(newLightCanvas->newGUIEvent,this, &testApp::guiLightsEvent); // this function listens to the events of the secondary GUI too
-            }
-            else { // If the new light GUI was just hidden, show it and reset widgets
-                newLightCanvas->clearWidgets();
-                newLightCanvas->setVisible(true);
-            }
-            // Initialize the "New Light" secondary GUI
-            newLightCanvas->setName("newLightCanvas");
-            newLightCanvas->addLabel("New Light");
-            newLightCanvas->addSpacer();
-            vector<string> vnames;
-
-            vnames.push_back("Point light");
-            vnames.push_back("Directional light");
-            vnames.push_back("Spotlight");
-            ofxUIRadio *radio = newLightCanvas->addRadio("Light Type", vnames, OFX_UI_ORIENTATION_VERTICAL);
-
-            radio->activateToggle("Point light");
-            newLightCanvas->addSpacer();
-            newLightCanvas->addLabelButton("OK", false);
-            newLightCanvas->addLabelButton("Cancel", false);
-            newLightCanvas->autoSizeToFitWidgets();
+            showSecondaryGUI("newLight", &testApp::guiNewLight);
         } else { // If the button is OFF : hide the "New Light" GUI
             newLightCanvas->setVisible(false);
         }
     }
     else if (name == "OK") { // OK, let's create a new light !
-        ofxUICanvas *newLightCanvas = getSecondaryGUI("newLightCanvas");
+        ofxUICanvas *newLightCanvas = getSecondaryGUI("newLight");
         ofxUIRadio *radio = (ofxUIRadio *) newLightCanvas->getWidget("Light Type");
         ofxUIToggle *toggle = (ofxUIToggle *) gui->getWidget("Create new light");
         ofLight newLight;
@@ -1178,25 +1179,29 @@ void testApp::guiLightsEvent(ofxUIEventArgs &e) {
         }
         // Getting all the positions
         vector<ofVec3f> positions;
+        stringstream ss("");
+
         for (int i = 0; i < lights.size(); i++) {
             positions.push_back(lights[i].getPosition());
         }
         // Adding the new light in the vector
         lights.push_back(newLight);
+        // Set the new light as the new target
+        lightTarget = lights.size()-1;
+        ss << lightTarget;
+        lightInfos.push_back(new LightInfo(radio->getActiveName() + ss.str()));
 
         // Restoring the old positions. (Adding a new light resets all positions to (0,0,0) )
         for (int i = 0; i < positions.size(); i++) {
             lights[i].setPosition(positions[i]);
         }
-        // Set the new light as the new target
-        lightTarget = lights.size()-1;
         // Hide the 'new light' canvas
         newLightCanvas->setVisible(false);
         // Refresh the main lights canvas.
         guiLights();
     }
     else if (name == "Cancel") { // Wait, don't create a new light after all !
-        ofxUICanvas *newLightCanvas = getSecondaryGUI("newLightCanvas");
+        ofxUICanvas *newLightCanvas = getSecondaryGUI("newLight");
         ofxUIToggle *toggle = (ofxUIToggle *) gui->getWidget("Create new light");
 
         newLightCanvas->setVisible(false);
@@ -1288,6 +1293,30 @@ void testApp::guiLightsEvent(ofxUIEventArgs &e) {
         contexts.second = &testApp::guiMain;
     }
 }
+
+
+void testApp::guiNewLight() {
+    ofxUICanvas *sgui = getSecondaryGUI("newLight");
+
+    sgui->addLabel("New Light");
+    sgui->addSpacer();
+    vector<string> vnames;
+
+    vnames.push_back("Point light");
+    vnames.push_back("Directional light");
+    vnames.push_back("Spotlight");
+    ofxUIRadio *radio = sgui->addRadio("Light Type", vnames, OFX_UI_ORIENTATION_VERTICAL);
+
+    radio->activateToggle("Point light");
+    sgui->addSpacer();
+    sgui->addLabelButton("OK", false);
+    sgui->addLabelButton("Cancel", false);
+    sgui->autoSizeToFitWidgets();
+    ofAddListener(sgui->newGUIEvent,this, &testApp::guiLightsEvent); // this function listens to the events of the secondary GUI too
+}
+
+
+
 
 void testApp::guiLightProperties() {
     ofxUICanvas *sgui = getSecondaryGUI("lightProps");
