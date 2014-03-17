@@ -1338,5 +1338,26 @@ void testApp::guiLightProperties() {
     sgui->addSlider("Linear", 0., 1., lights[lightTarget].getAttenuationLinear());
     sgui->addSlider("Quadratic", 0., 1., lights[lightTarget].getAttenuationQuadratic());
     sgui->autoSizeToFitWidgets();
+    ofAddListener(sgui->newGUIEvent,this, &testApp::guiLightPropsEvent); // this function listens to the events of the secondary GUI too
 }
 
+void testApp::guiLightPropsEvent(ofxUIEventArgs &e) {
+    string name = e.widget->getName();
+
+    if (name == "Constant") {
+        ofxUISlider *rslider = (ofxUISlider *) e.widget;
+
+        lights[lightTarget].setAttenuation(rslider->getValue(), lights[lightTarget].getAttenuationLinear(), lights[lightTarget].getAttenuationQuadratic());
+    }
+    else if (name == "Linear") {
+        ofxUISlider *rslider = (ofxUISlider *) e.widget;
+
+        lights[lightTarget].setAttenuation(lights[lightTarget].getAttenuationConstant(), rslider->getValue(), lights[lightTarget].getAttenuationQuadratic());
+
+    }
+    else if (name == "Quadratic") {
+        ofxUISlider *rslider = (ofxUISlider *) e.widget;
+
+        lights[lightTarget].setAttenuation(lights[lightTarget].getAttenuationConstant(), lights[lightTarget].getAttenuationLinear(), rslider->getValue());
+    }
+}

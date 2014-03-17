@@ -57,7 +57,7 @@ public:
     void guiNewLightEvent(ofxUIEventArgs &e);
 
     void guiLightProperties();
-    void guiLightPropertiesEvent(ofxUIEventArgs &e);
+    void guiLightPropsEvent(ofxUIEventArgs &e);
 
     ofxUICanvas *getSecondaryGUI(const string & name);
     string getLightName(ofLight &light);
