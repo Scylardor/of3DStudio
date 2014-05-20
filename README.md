@@ -5,7 +5,7 @@ An openFrameworks application to visualize 3D objects, lights and materials
 
 
 About
------ials on 3D objects.
+-----
 
 To do this, it implements a contextual menu allowing to navigate through lights, objects and their materials, change their properties, add new ones, or remove them.
 
