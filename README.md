@@ -3,6 +3,8 @@ of3DStudio
 
 An openFrameworks application to visualize 3D objects, lights and materials
 
+![screenshot](https://github.com/Scylardor/of3DStudio/blob/master/screen.png?raw=true "Scene example")
+
 
 About
 -----
