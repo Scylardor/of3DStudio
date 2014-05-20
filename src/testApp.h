@@ -7,9 +7,6 @@
 #include "ObjInfo.hpp"
 #include "LightInfo.hpp"
 
-// Informations about the lights in the scene.
-
-
 class testApp : public ofBaseApp{
 public:
     typedef void (testApp::*ctxtFunc)();
