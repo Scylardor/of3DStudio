@@ -7,7 +7,9 @@ An openFrameworks application to visualize 3D objects, lights and materials
 About
 -----
 
-To do this, it implements a contextual menu allowing to navigate through lights, objects and their materials, change their properties, add new ones, or remove them.
+The main goal of this oF app is to provide a simple way to study the effects of light on various objects and materials.
+
+To do this, it implements a contextual menu allowing to easily navigate through lights, objects and their materials, change their properties, add new ones, or remove them.
 
 The menu is made with [ofxUI](https://github.com/rezaali/ofxUI).
 
