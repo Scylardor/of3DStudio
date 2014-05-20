@@ -14,8 +14,6 @@ To do this, it implements a contextual menu allowing to easily navigate through 
 The menu is made with [ofxUI](https://github.com/rezaali/ofxUI).
 
 
-The main purpose of this OF app is to study the effects of lights and mater
-
 How to run it
 -------------
 
