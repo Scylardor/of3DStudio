@@ -6,8 +6,10 @@ void testApp::setup(){
 	ofEnableSmoothing();
 	ofEnableDepthTest();
 
-    objs.push_back(new ofBoxPrimitive());
-    objInfos.push_back(new ObjInfo(BOX, "Box0"));
+    objs.push_back(new ofSpherePrimitive());
+    objInfos.push_back(new ObjInfo(SPHERE, "Sphere0"));
+    objs[0]->setGlobalPosition(50, 70, -100);
+    objInfos[0]->color() = ofColor::cadetBlue;
     lights.push_back(ofLight());
     lights[0].setPointLight();
     lights[0].setPosition(100, 100, 0);
@@ -34,7 +36,8 @@ void testApp::update() {
 
 //--------------------------------------------------------------
 void testApp::draw(){
-	ofBackground(backgroundColor);
+    ofBackgroundGradient(ofColor::white, ofColor::black, OF_GRADIENT_CIRCULAR);
+//	ofBackground(backgroundColor);
 	cam.begin();
 	ofEnableLighting();
 	ofSetSmoothLighting(true);

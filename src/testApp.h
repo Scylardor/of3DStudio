@@ -43,7 +43,6 @@ public:
     void guiObjectsEvent(ofxUIEventArgs &e);
 
     void guiObjectProperties();
-    void guiObjectProperties_aux(ofBoxPrimitive * box, ofxUICanvas * ObjCanvas);
     void guiObjectPropertiesEvent(ofxUIEventArgs &e);
 
     void guiMaterials();

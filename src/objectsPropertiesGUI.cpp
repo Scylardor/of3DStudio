@@ -100,19 +100,6 @@ void testApp::guiObjectProperties() {
     ObjCanvas->autoSizeToFitWidgets();
 }
 
-
-void guiObjectProperties_aux(ofBoxPrimitive * box, ofxUICanvas * ObjCanvas) {
-        ObjCanvas->addLabel("Box");
-        ObjCanvas->addSpacer();
-        ObjCanvas->addSlider("Width", 0.1, 3000.0, box->getWidth());
-        ObjCanvas->addSlider("Height", 0.1, 3000.0, box->getHeight());
-        ObjCanvas->addSlider("Depth", 0.1, 3000.0, box->getDepth());
-        ObjCanvas->addSlider("Width Resolution", 1., 100., box->getResolutionWidth());
-        ObjCanvas->addSlider("Height Resolution", 1., 100., box->getResolutionHeight());
-        ObjCanvas->addSlider("Depth Resolution", 1., 100., box->getResolutionDepth());
-}
-
-
 void testApp::guiObjectPropertiesEvent(ofxUIEventArgs &e) {
     string name = e.widget->getName();
 
