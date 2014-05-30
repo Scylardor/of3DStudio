@@ -6,8 +6,9 @@
 
 #include "ObjInfo.hpp"
 #include "LightInfo.hpp"
+#include "Obj3D.hh"
 
-class testApp : public ofBaseApp{
+class testApp : public ofBaseApp {
 public:
     typedef void (testApp::*ctxtFunc)();
     typedef void (testApp::*eventFunc)(ofxUIEventArgs &e);
@@ -32,26 +33,21 @@ public:
     void hideSecondaryGUIS();
     void showSecondaryGUI(const string & name, ctxtFunc build_gui);
 
-
-    void guiEvent(ofxUIEventArgs &e);
-
     void guiMain();
     void guiMainEvent(ofxUIEventArgs &e);
 
-
     void guiBackground();
     void guiBackgroundEvent(ofxUIEventArgs &e);
-
 
     void guiObjects();
     void guiObjectsEvent(ofxUIEventArgs &e);
 
     void guiObjectProperties();
+    void guiObjectProperties_aux(ofBoxPrimitive * box, ofxUICanvas * ObjCanvas);
     void guiObjectPropertiesEvent(ofxUIEventArgs &e);
 
     void guiMaterials();
     void guiMaterialsEvent(ofxUIEventArgs &e);
-
 
     void guiLights();
     void guiLightsEvent(ofxUIEventArgs &e);
@@ -78,4 +74,5 @@ public:
     pair<ctxtFunc, ctxtFunc> contexts;
     eventFunc cur_event_listener;
     vector<ofxUICanvas *> guis;
+    vector<AObject *> m_objs;
 };

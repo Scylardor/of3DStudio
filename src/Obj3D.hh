@@ -1,33 +1,32 @@
-#pragma once
+#ifndef OBJ_HH_INCLUDED
+#define OBJ_HH_INCLUDED
+
 #include "ofMain.h"
 
-typedef enum PrimitiveType {
-    PLANE,
-    BOX,
-    CONE,
-    CYLINDER,
-    SPHERE,
-    ICOSPHERE
-}   PrimType;
+// An enum to specify which type of 3D primitive the object is.
+// As 3DObj only keeps an of3DPrimitive pointer, we can't "remember" otherwise.
+//typedef enum PrimitiveType2 {
+//    PLANE,
+//    BOX,
+//    CONE,
+//    CYLINDER,
+//    SPHERE,
+//    ICOSPHERE
+//}   PrimType2;
 
-class ObjInfo {
+class AObject {
 public:
-    ObjInfo(PrimType p_type, string p_name) :
-    m_faces(true), m_wire(false), m_verts(false), m_norms(false), m_axes(false), m_color(ofColor::white), m_type(p_type), m_name(p_name),
-    m_scale(ofVec3f(1.,1.,1.))
-    {}
-    ~ObjInfo() {}
+    AObject() {}
+    AObject(int p_type, string p_name);
+    ~AObject();
 
-    void resetMaterial() {
-        ofMaterial reset;
+    // Setters
 
-        m_mat = reset;
-    }
     inline void addShader(const ofShader & p_newShdr) {
        m_shdrs.push_back(p_newShdr);
     }
 
-    inline void setType(PrimType p_type) {
+    inline void setType(int p_type) {
         m_type = p_type;
     }
 
@@ -67,6 +66,12 @@ public:
         m_scale[2] = scaleZ;
     }
 
+    void setMaterial(const ofMaterial &  p_mat=ofMaterial()) {
+        m_mat = p_mat;
+    }
+
+    // Getters
+
     inline const ofMaterial &material () const {
         return m_mat;
     }
@@ -79,7 +84,7 @@ public:
         return m_shdrs;
     }
 
-    inline PrimType type() const {
+    inline int type() const {
         return m_type;
     }
 
@@ -135,6 +140,7 @@ public:
         return m_scale[2];
     }
 
+
 private:
     bool m_faces;
     bool m_wire;
@@ -142,9 +148,28 @@ private:
     bool m_norms;
     bool m_axes;
     ofColor m_color;
-    PrimType m_type;
+    int m_type;
     string m_name;
     ofVec3f m_scale;
     ofMaterial m_mat;
     vector<ofShader> m_shdrs;
 };
+
+
+template <class T>
+class Obj3D : public AObject, public T {
+public:
+    Obj3D(int p_type, string p_name)
+    {
+
+    }
+
+    ~Obj3D()
+    {
+
+    }
+
+};
+
+
+#endif // OBJ_HH_INCLUDED
