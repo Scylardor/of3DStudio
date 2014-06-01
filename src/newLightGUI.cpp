@@ -27,7 +27,6 @@ void testApp::guiNewLightEvent(ofxUIEventArgs &e) {
     if (name == "OK") { // OK, let's create a new light !
         ofxUICanvas *newLightCanvas = getSecondaryGUI("newLight");
         ofxUIRadio *radio = (ofxUIRadio *) newLightCanvas->getWidget("Light Type");
-        ofxUIToggle *toggle = (ofxUIToggle *) gui->getWidget("Create new light");
         ofLight newLight;
         // Set the light type according to the user's choice.
         if (radio->getActiveName() == "Point light") {

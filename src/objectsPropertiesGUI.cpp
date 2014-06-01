@@ -97,6 +97,7 @@ void testApp::guiObjectProperties() {
         ObjCanvas->addLabel("Primitive");
         break;
     }
+    ObjCanvas->addLabelButton("Edit texture", false);
     ObjCanvas->autoSizeToFitWidgets();
 }
 
@@ -259,5 +260,17 @@ void testApp::guiObjectPropertiesEvent(ofxUIEventArgs &e) {
 
                 cyl->setResolutionCap(rslider->getValue());
             }
+    }
+    else if (name == "Edit texture") {
+        ofxUILabelButton *button = reinterpret_cast<ofxUILabelButton *>(e.widget);
+
+        if (button->getValue()) {
+            ofFileDialogResult saveFileResult = ofSystemLoadDialog("Choose a texture image");
+
+            if (saveFileResult.bSuccess)
+            {
+                objInfos[objTarget]->texture().loadImage(saveFileResult.filePath);
+            }
+        }
     }
 }

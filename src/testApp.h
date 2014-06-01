@@ -73,5 +73,4 @@ public:
     pair<ctxtFunc, ctxtFunc> contexts;
     eventFunc cur_event_listener;
     vector<ofxUICanvas *> guis;
-    vector<AObject *> m_objs;
 };

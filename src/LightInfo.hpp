@@ -5,10 +5,13 @@ public:
     LightInfo(string name)
     : m_name(name), m_visible(true), m_enabled(true)
     {
+
     }
 
-    ~LightInfo() { }
+    ~LightInfo()
+    {
 
+    }
 
     void setName(const string & name) { m_name = name; }
     void toggleVisibility() { m_visible = !m_visible; }

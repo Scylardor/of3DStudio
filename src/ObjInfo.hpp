@@ -13,10 +13,17 @@ typedef enum PrimitiveType {
 class ObjInfo {
 public:
     ObjInfo(PrimType p_type, string p_name) :
-    m_faces(true), m_wire(false), m_verts(false), m_norms(false), m_axes(false), m_color(ofColor::white), m_type(p_type), m_name(p_name),
-    m_scale(ofVec3f(1.,1.,1.))
-    {}
-    ~ObjInfo() {}
+    m_faces(true), m_wire(false), m_verts(false), m_norms(false),
+    m_axes(false), m_color(ofColor::white), m_type(p_type),
+    m_name(p_name), m_scale(ofVec3f(1.,1.,1.))
+    {
+
+    }
+
+    ~ObjInfo()
+    {
+
+    }
 
     void resetMaterial() {
         ofMaterial reset;
@@ -107,16 +114,24 @@ public:
         return m_color;
     }
 
-    inline ofColor &color() {
+    inline ofColor & color() {
         return m_color;
     }
 
-    const inline string &name() const {
+    const inline string & name() const {
         return m_name;
     }
 
     inline string & name() {
         return m_name;
+    }
+
+    const inline ofImage & texture() const {
+        return m_texture;
+    }
+
+    inline ofImage & texture() {
+        return m_texture;
     }
 
     inline const ofVec3f &scale() const {
@@ -146,5 +161,6 @@ private:
     string m_name;
     ofVec3f m_scale;
     ofMaterial m_mat;
+    ofImage m_texture;
     vector<ofShader> m_shdrs;
 };

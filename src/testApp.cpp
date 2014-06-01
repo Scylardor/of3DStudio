@@ -1,5 +1,6 @@
 #include "testApp.h"
 
+
 //--------------------------------------------------------------
 void testApp::setup(){
     ofSetVerticalSync(true);
@@ -23,7 +24,6 @@ void testApp::setup(){
     cur_event_listener = NULL;
     objTarget = 0;
     lightTarget = 0;
-    m_objs.push_back(new Obj3D<ofBoxPrimitive>(BOX, "toto"));
 }
 
 //--------------------------------------------------------------
@@ -47,6 +47,12 @@ void testApp::draw(){
         }
     }
 	for (size_t i = 0; i < objs.size(); i++) {
+        ofImage & objTexture = objInfos[i]->texture();
+
+        if (objTexture.isAllocated()) {
+            objTexture.getTextureReference().bind();
+            objs[i]->mapTexCoordsFromTexture(objTexture.getTextureReference());
+        }
         objInfos[i]->material().begin();
         ofPushStyle();
         ofPushMatrix();
@@ -56,12 +62,11 @@ void testApp::draw(){
         {
             objs[i]->drawFaces();
         }
-        if (objInfos[i]->drawAxes()) // draws axes of the shape
+        if (objInfos[i]->drawAxes())
         {
             objs[i]->drawAxes(100);
         }
-
-        if (objInfos[i]->drawVertices()) // draw vertices of the shape
+        if (objInfos[i]->drawVertices())
         {
             objs[i]->drawVertices();
         }
@@ -78,6 +83,9 @@ void testApp::draw(){
         ofPopMatrix();
         ofPopStyle();
         objInfos[i]->material().end();
+        if (objTexture.isAllocated()) {
+            objTexture.getTextureReference().unbind();
+        }
 	}
     for (size_t j = 0; j < lights.size(); j++) {
         if (lightInfos[j]->enabled()) {
@@ -94,6 +102,7 @@ void testApp::draw(){
 	}
 	cam.end();
 }
+
 
 //--------------------------------------------------------------
 void testApp::keyPressed(int key){
