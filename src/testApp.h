@@ -58,12 +58,12 @@ public:
     void guiLightPropsEvent(ofxUIEventArgs &e);
 
     ofxUICanvas *getSecondaryGUI(const string & name);
-    string getLightName(ofLight &light);
+    const string getLightName(ofLight * light) const ;
 
     ofxUICanvas *gui;
     vector<of3dPrimitive *> objs;
     vector<ObjInfo *> objInfos;
-    vector<ofLight> lights;
+    vector<ofLight *> lights;
     vector<LightInfo *> lightInfos;
     ofColor backgroundColor;
     ofEasyCam cam;

@@ -7,13 +7,16 @@ void testApp::setup(){
 	ofEnableSmoothing();
 	ofEnableDepthTest();
 
-    objs.push_back(new ofSpherePrimitive());
+	ofSpherePrimitive *sph = new ofSpherePrimitive();
+	ofLight *pointlight = new ofLight();
+
+    sph->setGlobalPosition(50, 70, -100);
+    pointlight->setPointLight();
+    pointlight->setPosition(100, 100, 0);
+    objs.push_back(sph);
     objInfos.push_back(new ObjInfo(SPHERE, "Sphere0"));
-    objs[0]->setGlobalPosition(50, 70, -100);
     objInfos[0]->color() = ofColor::cadetBlue;
-    lights.push_back(ofLight());
-    lights[0].setPointLight();
-    lights[0].setPosition(100, 100, 0);
+    lights.push_back(pointlight);
     lightInfos.push_back(new LightInfo("Pointlight0"));
     //set some sketch parameters
     //Background Color
@@ -43,7 +46,7 @@ void testApp::draw(){
 	ofSetSmoothLighting(true);
     for (size_t j = 0; j < lights.size(); j++) {
         if (lightInfos[j]->enabled()) {
-            lights[j].enable();
+            lights[j]->enable();
         }
     }
 	for (size_t i = 0; i < objs.size(); i++) {
@@ -89,15 +92,15 @@ void testApp::draw(){
 	}
     for (size_t j = 0; j < lights.size(); j++) {
         if (lightInfos[j]->enabled()) {
-            lights[j].disable();
+            lights[j]->disable();
         }
     }
     ofDisableLighting();
     ofFill();
     for (size_t i = 0; i < lights.size(); i++) {
         if (lightInfos[i]->visible()) {
-            ofSetColor(lights[i].getDiffuseColor());
-            lights[i].draw();
+            ofSetColor(lights[i]->getDiffuseColor());
+            lights[i]->draw();
         }
 	}
 	cam.end();
@@ -154,14 +157,14 @@ void testApp::exit()
     delete gui;
 }
 
-string testApp::getLightName(ofLight &light) {
+const string testApp::getLightName(ofLight * light) const {
     string lightName("");
 
-    if (light.getIsPointLight()) {
+    if (light->getIsPointLight()) {
         lightName = "Pointlight";
-    } else if (light.getIsDirectional()) {
+    } else if (light->getIsDirectional()) {
         lightName = "Directional";
-    } else if (light.getIsSpotlight()) {
+    } else if (light->getIsSpotlight()) {
         lightName = "Spotlight";
     }
     stringstream ss("");
