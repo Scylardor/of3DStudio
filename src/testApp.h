@@ -6,7 +6,6 @@
 
 #include "ObjInfo.hpp"
 #include "LightInfo.hpp"
-#include "Obj3D.hh"
 
 class testApp : public ofBaseApp {
 public:
